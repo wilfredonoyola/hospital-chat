@@ -49,6 +49,14 @@ curl -X POST localhost:3001/auth/staff/login \
   -H 'Content-Type: application/json' -d '{"staffCode":"ENF001","pin":"2580"}'
 ```
 
+Enviar un mensaje urgente como supervisora (el id del área sale de `GET /auth/me`):
+
+```bash
+curl -X POST localhost:3001/departments/<departmentId>/messages \
+  -H "Authorization: Bearer <token>" -H 'Content-Type: application/json' \
+  -d '{"body":"Código azul en sala 3","priority":"URGENT"}'
+```
+
 ### Pruebas
 
 ```bash
@@ -69,7 +77,7 @@ Cada fase se entrega en su propia rama y Pull Request, con su `SPEC.md` y los AD
 | Fase | Qué incluye                                                                                                            | Estado    |
 | ---- | ---------------------------------------------------------------------------------------------------------------------- | --------- |
 | 1    | Base y autenticación: código + PIN para el personal, email + contraseña para admin, JWT, roles, rate limit, auditoría  | Hecha     |
-| 2    | Arquitectura hexagonal + CQRS en el módulo de mensajes                                                                 | Pendiente |
+| 2    | Arquitectura hexagonal + CQRS en el módulo de mensajes                                                                 | Hecha     |
 | 3    | Estrategia de pruebas: ADR, cobertura mínima como gate en CI, pruebas de contrato (cada fase trae sus propias pruebas) | Pendiente |
 | 4    | Web en Next.js con chat en tiempo real (Socket.IO)                                                                     | Pendiente |
 | 5    | Logs estructurados, correlation ID, índices y paginación por cursor                                                    | Pendiente |
