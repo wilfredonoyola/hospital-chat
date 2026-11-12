@@ -6,6 +6,16 @@
 
 <!-- El problema o la necesidad. Si hubo una decisión importante, enlaza el ADR. -->
 
+## Qué no hice y por qué
+
+<!-- Lo que se consideró y se dejó fuera a propósito: alternativas descartadas,
+     sobrediseño evitado, deuda aceptada. Para cada punto: qué lo haría necesario. -->
+
+## Riesgos y cómo revertir
+
+<!-- Qué puede salir mal en producción y cómo se deshace: revertir el PR,
+     migración `down`, feature flag. "Sin riesgo" también es una respuesta válida si se justifica. -->
+
 ## Cómo probarlo
 
 <!-- Pasos concretos: comandos, endpoints, usuarios de prueba. -->

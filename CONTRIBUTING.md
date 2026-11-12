@@ -12,7 +12,7 @@
 3. Antes del código, un `SPEC.md` corto en la carpeta del módulo o en `docs/specs/` (Spec-Driven Development): qué se construye, qué queda fuera, criterios de aceptación.
 4. Si hay una decisión de arquitectura, un ADR en `docs/adr/` (copiar `0000-plantilla.md`).
 5. Las pruebas van en el mismo PR que el código que prueban. Un PR de funcionalidad sin pruebas no se integra (ver [Pruebas](#pruebas)).
-6. Pull Request hacia `main` con la plantilla completa. El CI debe pasar.
+6. Pull Request hacia `main` con la plantilla completa, incluida la sección **Qué no hice y por qué**: decir qué se dejó fuera a propósito vale tanto como lo que se hizo. El CI debe pasar.
 7. Merge con **squash**: un commit por PR en `main`, con el título del PR.
 
 `main` está protegida: no se hace push directo.
