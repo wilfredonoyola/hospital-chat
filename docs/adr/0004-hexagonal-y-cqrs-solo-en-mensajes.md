@@ -31,12 +31,12 @@ Usuarios y áreas **siguen como CRUD**.
 
 ## Alternativas consideradas
 
-| Opción                                                 | A favor                                                                              | En contra                                                                                                  |
-| ------------------------------------------------------ | ------------------------------------------------------------------------------------ | ---------------------------------------------------------------------------------------------------------- |
-| Hexagonal + CQRS solo en mensajes (elegida)            | Reglas probables sin base ni framework; lectura y escritura evolucionan por separado | Dos estilos en el mismo proyecto: hay que explicar por qué (este ADR)                                      |
-| Hexagonal en todos los módulos                         | Un solo estilo                                                                       | En un CRUD, triplica archivos (entidad, dominio, mapper, puerto, adaptador) sin ninguna regla que proteger |
-| Servicio de NestJS con TypeORM directo (como usuarios) | Menos archivos, más rápido                                                           | Las reglas quedan mezcladas con la persistencia; probarlas exige base o mocks del ORM                      |
-| CQRS con base de lectura separada                      | Lectura escalable de forma independiente                                             | Consistencia eventual y otra base que operar, para un volumen que una sola Postgres maneja de sobra        |
+| Opción                                                 | A favor                                                                                   | En contra                                                                                                  |
+| ------------------------------------------------------ | ----------------------------------------------------------------------------------------- | ---------------------------------------------------------------------------------------------------------- |
+| Hexagonal + CQRS solo en mensajes (elegida)            | Reglas que se prueban sin base ni framework; lectura y escritura evolucionan por separado | Dos estilos en el mismo proyecto: hay que explicar por qué (este ADR)                                      |
+| Hexagonal en todos los módulos                         | Un solo estilo                                                                            | En un CRUD, triplica archivos (entidad, dominio, mapper, puerto, adaptador) sin ninguna regla que proteger |
+| Servicio de NestJS con TypeORM directo (como usuarios) | Menos archivos, más rápido                                                                | Las reglas quedan mezcladas con la persistencia; probarlas exige base o mocks del ORM                      |
+| CQRS con base de lectura separada                      | Lectura escalable de forma independiente                                                  | Consistencia eventual y otra base que operar, para un volumen que una sola Postgres maneja de sobra        |
 
 ## Consecuencias
 
