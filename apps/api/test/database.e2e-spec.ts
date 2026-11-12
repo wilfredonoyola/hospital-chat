@@ -55,24 +55,27 @@ describe('Restricciones y migraciones de la base (e2e)', () => {
     });
   });
 
-  it('criterio 13: la migración se revierte y se vuelve a aplicar', async () => {
+  it('todas las migraciones se revierten en orden y se vuelven a aplicar', async () => {
     await resetDatabase(ctx.db);
+    const userTables = () =>
+      ctx.db
+        .query<Array<{ table_name: string }>>(
+          `SELECT table_name FROM information_schema.tables
+            WHERE table_schema = 'public' AND table_name <> 'migrations' ORDER BY table_name`,
+        )
+        .then((rows) => rows.map((row) => row.table_name));
 
-    await ctx.db.undoLastMigration();
-    const [{ exists }] = await ctx.db.query<Array<{ exists: boolean }>>(
-      `SELECT to_regclass('public.users') IS NOT NULL AS exists`,
-    );
-    expect(exists).toBe(false);
+    for (let i = 0; i < ctx.db.migrations.length; i++) {
+      await ctx.db.undoLastMigration();
+    }
+    expect(await userTables()).toEqual([]);
 
     await ctx.db.runMigrations();
-    const tables = await ctx.db.query<Array<{ table_name: string }>>(
-      `SELECT table_name FROM information_schema.tables
-        WHERE table_schema = 'public' AND table_name <> 'migrations' ORDER BY table_name`,
-    );
-    expect(tables.map((table) => table.table_name)).toEqual([
+    expect(await userTables()).toEqual([
       'audit_logs',
       'department_members',
       'departments',
+      'messages',
       'users',
     ]);
   });
