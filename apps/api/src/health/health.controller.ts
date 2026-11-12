@@ -1,6 +1,7 @@
 import { Controller, Get } from '@nestjs/common';
 import { ApiTags } from '@nestjs/swagger';
 import { HealthCheck, HealthCheckService, TypeOrmHealthIndicator } from '@nestjs/terminus';
+import { Public } from '../auth/decorators';
 
 @ApiTags('health')
 @Controller('health')
@@ -10,7 +11,11 @@ export class HealthController {
     private readonly db: TypeOrmHealthIndicator,
   ) {}
 
-  /** Lo usa el balanceador / App Service para saber si la instancia puede recibir tráfico. */
+  /**
+   * Lo usa el balanceador / App Service para saber si la instancia puede
+   * recibir tráfico. Público: el balanceador no tiene token. No expone datos.
+   */
+  @Public()
   @Get()
   @HealthCheck()
   check() {
