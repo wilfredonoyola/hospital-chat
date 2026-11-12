@@ -13,10 +13,10 @@ Qué decidimos, en una o dos frases.
 
 ## Alternativas consideradas
 
-| Opción | A favor | En contra |
-|---|---|---|
-| Elegida | | |
-| Descartada | | |
+| Opción     | A favor | En contra |
+| ---------- | ------- | --------- |
+| Elegida    |         |           |
+| Descartada |         |           |
 
 ## Consecuencias
 
