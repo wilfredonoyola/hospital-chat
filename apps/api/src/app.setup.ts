@@ -1,6 +1,8 @@
 import { INestApplication, ValidationPipe } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
+import { NestExpressApplication } from '@nestjs/platform-express';
 import helmet from 'helmet';
+import { DatabaseExceptionFilter } from './common/database-exception.filter';
 import { Env } from './config/env';
 
 /**
@@ -11,6 +13,14 @@ import { Env } from './config/env';
 export function configureApp(app: INestApplication): void {
   const config = app.get(ConfigService<Env, true>);
 
+  // Detrás de App Service / Front Door, req.ip debe ser la IP del cliente
+  // (X-Forwarded-For) y no la del balanceador: de eso dependen el rate limit
+  // y la IP que se guarda en la auditoría.
+  const trustProxy = config.get('TRUST_PROXY', { infer: true });
+  if (trustProxy > 0) {
+    (app as NestExpressApplication).set('trust proxy', trustProxy);
+  }
+
   app.use(helmet());
   app.enableCors({ origin: config.get('CORS_ORIGINS', { infer: true }) });
   app.enableShutdownHooks();
@@ -20,4 +30,5 @@ export function configureApp(app: INestApplication): void {
   app.useGlobalPipes(
     new ValidationPipe({ whitelist: true, forbidNonWhitelisted: true, transform: true }),
   );
+  app.useGlobalFilters(new DatabaseExceptionFilter());
 }
