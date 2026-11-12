@@ -77,7 +77,7 @@ Cada fase se entrega en su propia rama y Pull Request, con su `SPEC.md` y los AD
 | Fase | Qué incluye                                                                                                            | Estado    |
 | ---- | ---------------------------------------------------------------------------------------------------------------------- | --------- |
 | 1    | Base y autenticación: código + PIN para el personal, email + contraseña para admin, JWT, roles, rate limit, auditoría  | Hecha     |
-| 2    | Arquitectura hexagonal + CQRS en el módulo de mensajes                                                                 | Hecha     |
+| 2    | Mensajes por área con reglas de negocio; hexagonal y CQRS documentados como evolución (ADR 0004)                       | Hecha     |
 | 3    | Estrategia de pruebas: ADR, cobertura mínima como gate en CI, pruebas de contrato (cada fase trae sus propias pruebas) | Pendiente |
 | 4    | Web en Next.js con chat en tiempo real (Socket.IO)                                                                     | Pendiente |
 | 5    | Logs estructurados, correlation ID, índices y paginación por cursor                                                    | Pendiente |
