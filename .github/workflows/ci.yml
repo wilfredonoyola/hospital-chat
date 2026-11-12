@@ -41,3 +41,36 @@ jobs:
 
       - name: Build
         run: npm run build
+
+  e2e:
+    name: Pruebas e2e (Postgres)
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    services:
+      postgres:
+        image: postgres:17-alpine
+        env:
+          POSTGRES_DB: hospital_chat_test
+          POSTGRES_USER: hospital_chat
+          POSTGRES_PASSWORD: hospital_chat
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd "pg_isready -U hospital_chat"
+          --health-interval 5s
+          --health-timeout 3s
+          --health-retries 10
+    env:
+      DATABASE_URL: postgres://hospital_chat:hospital_chat@localhost:5432/hospital_chat_test
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version-file: .nvmrc
+          cache: npm
+
+      - run: npm ci
+
+      - name: Pruebas e2e
+        run: npm run test:e2e

@@ -15,7 +15,7 @@ Es un proyecto de laboratorio: está construido como si fuera a producción (ram
 
 ## Inicio rápido
 
-Requisitos: Node 22 (`nvm use`) y Docker.
+Requisitos: Node 24 (`nvm use`) y Docker.
 
 ```bash
 docker compose up -d db                       # PostgreSQL 17 en localhost:5432

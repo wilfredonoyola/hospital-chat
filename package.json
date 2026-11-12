@@ -7,7 +7,7 @@
     "packages/*"
   ],
   "engines": {
-    "node": ">=22.12"
+    "node": ">=24.9"
   },
   "scripts": {
     "dev:api": "npm run start:dev -w @hospital-chat/api",
@@ -16,7 +16,8 @@
     "format": "prettier --write .",
     "format:check": "prettier --check .",
     "typecheck": "npm run typecheck --workspaces --if-present",
-    "test": "npm test --workspaces --if-present"
+    "test": "npm test --workspaces --if-present",
+    "test:e2e": "npm run test:e2e --workspaces --if-present"
   },
   "devDependencies": {
     "@eslint/js": "^10.0.1",
