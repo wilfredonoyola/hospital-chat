@@ -11,20 +11,28 @@ export interface TestContext {
   app: INestApplication<App>;
   db: DataSource;
   http: () => ReturnType<typeof request>;
+  /** URL base cuando la app escucha en un puerto real (necesario para Socket.IO). */
+  url: string;
 }
 
 /** Levanta la app real (mismos módulos y configuración HTTP que producción) contra la base de pruebas. */
-export async function createTestApp(): Promise<TestContext> {
+export async function createTestApp(options: { listen?: boolean } = {}): Promise<TestContext> {
   const moduleRef = await Test.createTestingModule({ imports: [AppModule] }).compile();
   const app = moduleRef.createNestApplication<INestApplication<App>>();
   configureApp(app);
-  await app.init();
+  let url = '';
+  if (options.listen) {
+    await app.listen(0, '127.0.0.1');
+    url = (await app.getUrl()).replace('[::1]', '127.0.0.1');
+  } else {
+    await app.init();
+  }
 
   const db = app.get(DataSource);
   await db.runMigrations();
   await resetDatabase(db);
 
-  return { app, db, http: () => request(app.getHttpServer()) };
+  return { app, db, url, http: () => request(app.getHttpServer()) };
 }
 
 export async function resetDatabase(db: DataSource): Promise<void> {
