@@ -61,7 +61,7 @@ jobs:
           --health-timeout 3s
           --health-retries 10
     env:
-      DATABASE_URL: postgres://hospital_chat:hospital_chat@localhost:5432/hospital_chat_test
+      TEST_DATABASE_URL: postgres://hospital_chat:hospital_chat@localhost:5432/hospital_chat_test
     steps:
       - uses: actions/checkout@v4
 
