@@ -12,6 +12,8 @@ services:
       - '${DB_PORT:-5432}:5432'
     volumes:
       - db-data:/var/lib/postgresql/data
+      # Solo corre la primera vez que se crea el volumen.
+      - ./docker/postgres/init.sql:/docker-entrypoint-initdb.d/init.sql:ro
     healthcheck:
       test: ['CMD-SHELL', 'pg_isready -U hospital_chat -d hospital_chat']
       interval: 5s
