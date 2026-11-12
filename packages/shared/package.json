@@ -1,0 +1,7 @@
+{
+  "name": "@hospital-chat/shared",
+  "version": "0.1.0",
+  "private": true,
+  "description": "Contrato entre la API y los clientes: tipos de lo que viaja por HTTP y Socket.IO.",
+  "types": "./index.d.ts"
+}
