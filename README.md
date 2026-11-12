@@ -18,14 +18,49 @@ Es un proyecto de laboratorio: está construido como si fuera a producción (ram
 Requisitos: Node 24 (`nvm use`) y Docker.
 
 ```bash
-docker compose up -d db                       # PostgreSQL 17 en localhost:5432
+docker compose up -d db                       # PostgreSQL 17 (crea también la base de pruebas)
 npm install
-cp apps/api/.env.example apps/api/.env
+cp apps/api/.env.example apps/api/.env        # cambia JWT_SECRET y ADMIN_PASSWORD
+npm run migration:run -w @hospital-chat/api
+npm run seed -w @hospital-chat/api            # idempotente: se puede repetir
 npm run dev:api                               # http://localhost:3001
 ```
 
-- Health check: `GET http://localhost:3001/health`
 - Documentación de la API (Swagger): http://localhost:3001/docs
+- Health check: `GET http://localhost:3001/health`
+
+Si ya tenías el volumen de Postgres de antes, crea la base de pruebas una vez:
+`docker compose exec db createdb -U hospital_chat hospital_chat_test`
+
+### Usuarios de demostración
+
+Los crea el seed fuera de producción.
+
+| Quién          | Rol          | Credenciales                               | Áreas            |
+| -------------- | ------------ | ------------------------------------------ | ---------------- |
+| Administrador  | `ADMIN`      | `ADMIN_EMAIL` / `ADMIN_PASSWORD` de `.env` | —                |
+| Carla Rivas    | `SUPERVISOR` | `SUP001` / `7391`                          | Emergencias, UCI |
+| Ana Martínez   | `STAFF`      | `ENF001` / `2580`                          | Emergencias      |
+| Luis Hernández | `STAFF`      | `ENF002` / `4826`                          | UCI, Pediatría   |
+| Sofía Campos   | `STAFF`      | `FAR001` / `6153`                          | Farmacia         |
+
+```bash
+curl -X POST localhost:3001/auth/staff/login \
+  -H 'Content-Type: application/json' -d '{"staffCode":"ENF001","pin":"2580"}'
+```
+
+### Pruebas
+
+```bash
+npm test             # unitarias, sin base de datos
+npm run test:e2e     # e2e contra Postgres real (base hospital_chat_test)
+```
+
+## Documentación
+
+- [Modelo de amenazas](docs/amenazas.md)
+- [Specs por fase](docs/specs)
+- [Decisiones de arquitectura (ADR)](docs/adr)
 
 ## Hoja de ruta
 
@@ -33,7 +68,7 @@ Cada fase se entrega en su propia rama y Pull Request, con su `SPEC.md` y los AD
 
 | Fase | Qué incluye                                                                                                            | Estado    |
 | ---- | ---------------------------------------------------------------------------------------------------------------------- | --------- |
-| 1    | Base y autenticación: código + PIN para el personal, email + contraseña para admin, JWT, roles, rate limit, auditoría  | Pendiente |
+| 1    | Base y autenticación: código + PIN para el personal, email + contraseña para admin, JWT, roles, rate limit, auditoría  | Hecha     |
 | 2    | Arquitectura hexagonal + CQRS en el módulo de mensajes                                                                 | Pendiente |
 | 3    | Estrategia de pruebas: ADR, cobertura mínima como gate en CI, pruebas de contrato (cada fase trae sus propias pruebas) | Pendiente |
 | 4    | Web en Next.js con chat en tiempo real (Socket.IO)                                                                     | Pendiente |
