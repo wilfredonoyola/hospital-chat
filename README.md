@@ -31,17 +31,17 @@ npm run dev:api                               # http://localhost:3001
 
 Cada fase se entrega en su propia rama y Pull Request, con su `SPEC.md` y los ADR de las decisiones importantes.
 
-| Fase | Qué incluye                                                                                                           | Estado    |
-| ---- | --------------------------------------------------------------------------------------------------------------------- | --------- |
-| 1    | Base y autenticación: código + PIN para el personal, email + contraseña para admin, JWT, roles, rate limit, auditoría | Pendiente |
-| 2    | Arquitectura hexagonal + CQRS en el módulo de mensajes                                                                | Pendiente |
-| 3    | Pruebas unitarias y e2e                                                                                               | Pendiente |
-| 4    | Web en Next.js con chat en tiempo real (Socket.IO)                                                                    | Pendiente |
-| 5    | Logs estructurados, correlation ID, índices y paginación por cursor                                                   | Pendiente |
-| 6    | Despliegue en Azure y adjuntos con Blob Storage (SAS)                                                                 | Pendiente |
-| 7    | Eventos con RabbitMQ, Kafka y Azure Service Bus; retry, circuit breaker, DLQ                                          | Pendiente |
-| 8    | CI/CD completo: análisis de seguridad, Docker y despliegue                                                            | Pendiente |
-| 9    | App móvil con Expo                                                                                                    | Pendiente |
+| Fase | Qué incluye                                                                                                            | Estado    |
+| ---- | ---------------------------------------------------------------------------------------------------------------------- | --------- |
+| 1    | Base y autenticación: código + PIN para el personal, email + contraseña para admin, JWT, roles, rate limit, auditoría  | Pendiente |
+| 2    | Arquitectura hexagonal + CQRS en el módulo de mensajes                                                                 | Pendiente |
+| 3    | Estrategia de pruebas: ADR, cobertura mínima como gate en CI, pruebas de contrato (cada fase trae sus propias pruebas) | Pendiente |
+| 4    | Web en Next.js con chat en tiempo real (Socket.IO)                                                                     | Pendiente |
+| 5    | Logs estructurados, correlation ID, índices y paginación por cursor                                                    | Pendiente |
+| 6    | Despliegue en Azure y adjuntos con Blob Storage (SAS)                                                                  | Pendiente |
+| 7    | Eventos con RabbitMQ, Kafka y Azure Service Bus; retry, circuit breaker, DLQ                                           | Pendiente |
+| 8    | CI/CD completo: análisis de seguridad, Docker y despliegue                                                             | Pendiente |
+| 9    | App móvil con Expo                                                                                                     | Pendiente |
 
 ## Cómo trabajamos
 

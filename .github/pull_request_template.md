@@ -14,6 +14,6 @@
 
 - [ ] SPEC actualizado o no aplica
 - [ ] ADR para decisiones de arquitectura o no aplica
-- [ ] Pruebas para la lógica nueva
+- [ ] Pruebas en este mismo PR: unitarias para la lógica nueva, e2e si cambia un endpoint
 - [ ] Migración reversible (`down`) si toca la base
 - [ ] Sin secretos ni datos reales en el código
