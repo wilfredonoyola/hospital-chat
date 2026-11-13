@@ -71,6 +71,7 @@ npm run test:e2e     # e2e contra Postgres real (base hospital_chat_test)
 - [Modelo de amenazas](docs/amenazas.md)
 - [Diagnóstico en producción](docs/operacion/diagnostico.md)
 - [Rendimiento: índice de mensajes y cursor](docs/rendimiento/fase-5-indice-mensajes.md)
+- [Diseños de las fases 6 a 9](docs/diseno)
 - [Specs por fase](docs/specs)
 - [Decisiones de arquitectura (ADR)](docs/adr)
 
@@ -78,17 +79,19 @@ npm run test:e2e     # e2e contra Postgres real (base hospital_chat_test)
 
 Cada fase se entrega en su propia rama y Pull Request, con su `SPEC.md` y los ADR de las decisiones importantes.
 
-| Fase | Qué incluye                                                                                                            | Estado    |
-| ---- | ---------------------------------------------------------------------------------------------------------------------- | --------- |
-| 1    | Base y autenticación: código + PIN para el personal, email + contraseña para admin, JWT, roles, rate limit, auditoría  | Hecha     |
-| 2    | Mensajes por área con reglas de negocio; hexagonal y CQRS documentados como evolución (ADR 0004)                       | Hecha     |
-| 3    | Estrategia de pruebas: ADR, cobertura mínima como gate en CI, pruebas de contrato (cada fase trae sus propias pruebas) | Pendiente |
-| 4    | Web en Next.js con chat en tiempo real (Socket.IO)                                                                     | Hecha     |
-| 5    | Logs estructurados, correlation ID, índices y paginación por cursor                                                    | Hecha     |
-| 6    | Despliegue en Azure y adjuntos con Blob Storage (SAS)                                                                  | Pendiente |
-| 7    | Eventos con RabbitMQ, Kafka y Azure Service Bus; retry, circuit breaker, DLQ                                           | Pendiente |
-| 8    | CI/CD completo: análisis de seguridad, Docker y despliegue                                                             | Pendiente |
-| 9    | App móvil con Expo                                                                                                     | Pendiente |
+**Alcance: MVP.** Las fases 1 a 5 están construidas, probadas y medidas. Las fases 6 a 9 están [diseñadas](docs/diseno) pero no implementadas: se construirían cuando haya un disparador real (usuarios, despliegue, otro cliente).
+
+| Fase | Qué incluye                                                                                                            | Estado                  |
+| ---- | ---------------------------------------------------------------------------------------------------------------------- | ----------------------- |
+| 1    | Base y autenticación: código + PIN para el personal, email + contraseña para admin, JWT, roles, rate limit, auditoría  | Hecha                   |
+| 2    | Mensajes por área con reglas de negocio; hexagonal y CQRS documentados como evolución (ADR 0004)                       | Hecha                   |
+| 3    | Estrategia de pruebas: ADR, cobertura mínima como gate en CI, pruebas de contrato (cada fase trae sus propias pruebas) | Pendiente               |
+| 4    | Web en Next.js con chat en tiempo real (Socket.IO)                                                                     | Hecha                   |
+| 5    | Logs estructurados, correlation ID, índices y paginación por cursor                                                    | Hecha                   |
+| 6    | Despliegue en Azure y adjuntos con Blob Storage (SAS)                                                                  | [Diseñada](docs/diseno) |
+| 7    | Eventos con RabbitMQ, Kafka y Azure Service Bus; retry, circuit breaker, DLQ                                           | [Diseñada](docs/diseno) |
+| 8    | CI/CD completo: análisis de seguridad, Docker y despliegue                                                             | [Diseñada](docs/diseno) |
+| 9    | App móvil con Expo                                                                                                     | [Diseñada](docs/diseno) |
 
 ## Cómo trabajamos
 
