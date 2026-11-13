@@ -69,6 +69,7 @@ npm run test:e2e     # e2e contra Postgres real (base hospital_chat_test)
 ## Documentación
 
 - [Modelo de amenazas](docs/amenazas.md)
+- [Diagnóstico en producción](docs/operacion/diagnostico.md)
 - [Specs por fase](docs/specs)
 - [Decisiones de arquitectura (ADR)](docs/adr)
 
