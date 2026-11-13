@@ -34,7 +34,7 @@ export function ChatScreen() {
   return (
     <div className="chat">
       <Sidebar
-        fullName={user.fullName}
+        user={user}
         status={status}
         departments={departments ?? []}
         loading={profile.isPending}

@@ -93,7 +93,7 @@ export function MessageList({ messages, hasOlder, loadingOlder, onLoadOlder }: M
           </li>
         )}
         {ordered.map((message) => (
-          <MessageItem key={message.id} message={message} />
+          <MessageItem key={message.id} message={message} isMine={message.author.id === userId} />
         ))}
         <div ref={endRef} />
       </ol>
