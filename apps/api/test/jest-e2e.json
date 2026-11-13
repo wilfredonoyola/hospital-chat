@@ -17,5 +17,13 @@
     "!src/main.ts",
     "!src/seed.ts",
     "!src/database/data-source.ts"
-  ]
+  ],
+  "coverageThreshold": {
+    "global": {
+      "lines": 95,
+      "statements": 95,
+      "functions": 93,
+      "branches": 85
+    }
+  }
 }

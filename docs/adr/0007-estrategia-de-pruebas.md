@@ -38,6 +38,7 @@ No es una pirámide estricta: en una API cuyo valor está en hablar bien con Pos
 
 - Se mide sobre lo que tiene lógica: en la API, con las **e2e** (cubren servicios, controllers y guards contra la base real); en la web, `features/` y `lib/`.
 - El CI falla si baja del **piso**, fijado un poco por debajo de lo medido al introducirlo. Funciona como trinquete: se sube cuando la cobertura sube, nunca se baja para que pase un PR.
+- Pisos actuales: **API (e2e) 95 % de líneas y 85 % de ramas** (medido: 97,5 % y 87,4 %); **web 65 % de líneas** (medido: 67,7 %).
 - No se persigue el 100 %: las líneas sin cubrir que quedan son composición (`ChatScreen`, `Channel`) o necesitan un navegador real (scroll de `MessageList`).
 - La primera medición sirvió: encontró `SessionGuard` (protección de rutas) y el envío optimista sin pruebas, y se agregaron.
 
