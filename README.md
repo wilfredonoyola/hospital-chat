@@ -24,6 +24,8 @@ cp apps/api/.env.example apps/api/.env        # cambia JWT_SECRET y ADMIN_PASSWO
 npm run migration:run -w @hospital-chat/api
 npm run seed -w @hospital-chat/api            # idempotente: se puede repetir
 npm run dev:api                               # http://localhost:3001
+cp apps/web/.env.example apps/web/.env.local
+npm run dev:web                               # http://localhost:3000
 ```
 
 - Documentación de la API (Swagger): http://localhost:3001/docs
@@ -79,7 +81,7 @@ Cada fase se entrega en su propia rama y Pull Request, con su `SPEC.md` y los AD
 | 1    | Base y autenticación: código + PIN para el personal, email + contraseña para admin, JWT, roles, rate limit, auditoría  | Hecha     |
 | 2    | Mensajes por área con reglas de negocio; hexagonal y CQRS documentados como evolución (ADR 0004)                       | Hecha     |
 | 3    | Estrategia de pruebas: ADR, cobertura mínima como gate en CI, pruebas de contrato (cada fase trae sus propias pruebas) | Pendiente |
-| 4    | Web en Next.js con chat en tiempo real (Socket.IO)                                                                     | Pendiente |
+| 4    | Web en Next.js con chat en tiempo real (Socket.IO)                                                                     | Hecha     |
 | 5    | Logs estructurados, correlation ID, índices y paginación por cursor                                                    | Pendiente |
 | 6    | Despliegue en Azure y adjuntos con Blob Storage (SAS)                                                                  | Pendiente |
 | 7    | Eventos con RabbitMQ, Kafka y Azure Service Bus; retry, circuit breaker, DLQ                                           | Pendiente |
