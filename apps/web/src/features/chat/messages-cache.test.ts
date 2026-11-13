@@ -3,6 +3,7 @@ import {
   addMessage,
   confirmMessage,
   flattenPages,
+  markSeenInCache,
   removeMessage,
   updateNewestPage,
   type ChannelCache,
@@ -17,6 +18,8 @@ function message(id: string, createdAt: string, extra: Partial<ChatMessage> = {}
     priority: 'NORMAL',
     createdAt,
     author: { id: 'ana', fullName: 'Ana Martínez', role: 'STAFF' },
+    seenByMe: false,
+    seenCount: 0,
     ...extra,
   };
 }
@@ -87,6 +90,13 @@ describe('caché de mensajes', () => {
 
     it('aplana las páginas del más reciente al más antiguo', () => {
       expect(flattenPages(cache).map((m) => m.id)).toEqual(['m3', 'm1']);
+    });
+
+    it('marca "Lo vi" aunque el mensaje esté en una página anterior', () => {
+      const updated = markSeenInCache(cache, 'm1');
+
+      expect(updated?.pages[1].items[0].seenByMe).toBe(true);
+      expect(updated?.pages[0].items[0].seenByMe).toBe(false);
     });
   });
 });

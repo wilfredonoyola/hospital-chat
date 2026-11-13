@@ -60,6 +60,28 @@ export function updateNewestPage(
   return { ...cache, pages: [{ ...newest, items: update(newest.items) }, ...older] };
 }
 
+/**
+ * Marca "Lo vi" en la caché. A diferencia de los mensajes nuevos, el
+ * confirmado puede estar en cualquier página, así que se recorren todas.
+ */
+export function markSeenInCache(
+  cache: ChannelCache | undefined,
+  messageId: string,
+): ChannelCache | undefined {
+  if (!cache) {
+    return cache;
+  }
+  return {
+    ...cache,
+    pages: cache.pages.map((page) => ({
+      ...page,
+      items: page.items.map((message) =>
+        message.id === messageId ? { ...message, seenByMe: true } : message,
+      ),
+    })),
+  };
+}
+
 /** Todos los mensajes cargados, del más reciente al más antiguo. */
 export function flattenPages(cache: ChannelCache | undefined): ChatMessage[] {
   return cache?.pages.flatMap((page) => page.items) ?? [];

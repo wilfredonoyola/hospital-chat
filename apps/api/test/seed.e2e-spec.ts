@@ -44,7 +44,7 @@ describe('criterio 12: seed idempotente (e2e)', () => {
     await seed();
 
     expect(await counts()).toEqual(first);
-    expect(first).toEqual({ departments: 5, admins: 1, staff: 4, memberships: 6 });
+    expect(first).toEqual({ departments: 5, admins: 1, staff: 5, memberships: 8 });
   }, 60_000);
 
   it('el admin y el personal de demostración pueden entrar', async () => {

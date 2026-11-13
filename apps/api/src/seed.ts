@@ -51,6 +51,14 @@ const DEMO_STAFF = [
     pin: '4826',
     areas: ['UCI', 'Pediatría'],
   },
+  // Con Pedro, Emergencias y UCI tienen dos personas que pueden confirmar "Lo vi".
+  {
+    code: 'ENF003',
+    name: 'Pedro Gómez',
+    role: 'STAFF',
+    pin: '9147',
+    areas: ['Emergencias', 'UCI'],
+  },
   { code: 'FAR001', name: 'Sofía Campos', role: 'STAFF', pin: '6153', areas: ['Farmacia'] },
 ];
 

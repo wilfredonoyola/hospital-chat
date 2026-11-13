@@ -1,6 +1,12 @@
-import { render, screen } from '@testing-library/react';
+import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
+import { render as rtlRender, screen } from '@testing-library/react';
+import type { ReactElement } from 'react';
 import type { ChatMessage } from '@/features/chat/messages-cache';
 import { MessageItem } from './MessageItem';
+
+// El botón "Lo vi" usa React Query: cada prueba tiene su propio cliente.
+const render = (ui: ReactElement) =>
+  rtlRender(<QueryClientProvider client={new QueryClient()}>{ui}</QueryClientProvider>);
 
 const base: ChatMessage = {
   id: 'm1',
@@ -9,6 +15,8 @@ const base: ChatMessage = {
   priority: 'NORMAL',
   createdAt: '2026-11-12T08:00:00.000Z',
   author: { id: 'ana', fullName: 'Ana Martínez', role: 'STAFF' },
+  seenByMe: false,
+  seenCount: 0,
 };
 
 describe('MessageItem', () => {
@@ -34,6 +42,48 @@ describe('MessageItem', () => {
 
     expect(screen.getByText('Urgente')).toBeInTheDocument();
     expect(screen.getByLabelText('Mensaje urgente de Carla Rivas')).toHaveClass('message--urgent');
+  });
+
+  it('pide "Lo vi" en mensajes de supervisor, salvo al propio autor', () => {
+    const fromSupervisor = { ...base, author: { ...base.author, role: 'SUPERVISOR' as const } };
+
+    const { unmount } = render(<MessageItem message={fromSupervisor} />);
+    expect(screen.getByRole('button', { name: 'Lo vi' })).toBeInTheDocument();
+    unmount();
+
+    render(<MessageItem message={fromSupervisor} isMine />);
+    expect(screen.queryByRole('button', { name: 'Lo vi' })).not.toBeInTheDocument();
+  });
+
+  it('muestra "Visto ✓" si ya lo había confirmado (tras recargar)', () => {
+    render(
+      <MessageItem
+        message={{
+          ...base,
+          author: { ...base.author, role: 'SUPERVISOR' },
+          seenByMe: true,
+        }}
+      />,
+    );
+
+    expect(screen.getByRole('button', { name: 'Visto ✓' })).toBeDisabled();
+  });
+
+  it('al supervisor que lo envió le muestra cuántos lo vieron', () => {
+    const mine = { ...base, author: { ...base.author, role: 'SUPERVISOR' as const } };
+
+    const { unmount } = render(<MessageItem message={{ ...mine, seenCount: 3 }} isMine />);
+    expect(screen.getByText('Visto por 3')).toBeInTheDocument();
+    unmount();
+
+    render(<MessageItem message={mine} isMine />);
+    expect(screen.getByText('Nadie lo ha visto aún')).toBeInTheDocument();
+  });
+
+  it('no pide "Lo vi" en mensajes de personal', () => {
+    render(<MessageItem message={base} />);
+
+    expect(screen.queryByRole('button', { name: 'Lo vi' })).not.toBeInTheDocument();
   });
 
   it('marca como "Enviando…" un mensaje optimista', () => {

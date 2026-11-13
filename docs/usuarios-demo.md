@@ -12,6 +12,7 @@ Datos ficticios que crea `npm run seed` **solo fuera de producción** (`apps/api
 | Carla Rivas    | `SUPERVISOR` | Código + PIN (web y API)      | `SUP001` / `7391`                                            | Emergencias, UCI |
 | Ana Martínez   | `STAFF`      | Código + PIN (web y API)      | `ENF001` / `2580`                                            | Emergencias      |
 | Luis Hernández | `STAFF`      | Código + PIN (web y API)      | `ENF002` / `4826`                                            | UCI, Pediatría   |
+| Pedro Gómez    | `STAFF`      | Código + PIN (web y API)      | `ENF003` / `9147`                                            | Emergencias, UCI |
 | Sofía Campos   | `STAFF`      | Código + PIN (web y API)      | `FAR001` / `6153`                                            | Farmacia         |
 
 La contraseña del admin no se documenta: cada entorno pone la suya en `apps/api/.env` (el valor de `.env.example` es solo un ejemplo y debe cambiarse).
