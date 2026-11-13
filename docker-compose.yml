@@ -20,5 +20,18 @@ services:
       timeout: 3s
       retries: 10
 
+  # Cliente web de la base para explorar datos en local: http://localhost:8080
+  # Opcional: docker compose --profile tools up -d adminer
+  adminer:
+    image: adminer:5
+    profiles: [tools]
+    environment:
+      ADMINER_DEFAULT_SERVER: db
+    ports:
+      - '127.0.0.1:${ADMINER_PORT:-8080}:8080'
+    depends_on:
+      db:
+        condition: service_healthy
+
 volumes:
   db-data:
