@@ -72,5 +72,6 @@ jobs:
 
       - run: npm ci
 
-      - name: Pruebas e2e
-        run: npm run test:e2e
+      - name: Pruebas e2e (2 workers, una base por worker) con cobertura
+        # Directo al workspace: a través del script raíz, npm se queda con --coverage y no llega a Jest.
+        run: npm run test:e2e -w @hospital-chat/api -- --coverage --coverageReporters=text-summary
