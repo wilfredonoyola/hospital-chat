@@ -1,9 +1,10 @@
+import { testDatabaseUrlForWorker } from './test-database';
+
 // Entorno fijo para las e2e: no lee .env, así el resultado es el mismo en
 // cualquier máquina y en el CI, y nunca apunta a la base de desarrollo.
 process.env.NODE_ENV = 'test';
-process.env.DATABASE_URL =
-  process.env.TEST_DATABASE_URL ??
-  'postgres://hospital_chat:hospital_chat@localhost:5432/hospital_chat_test';
+// Cada worker de Jest tiene su propia base (ver global-setup.ts).
+process.env.DATABASE_URL = testDatabaseUrlForWorker(process.env.JEST_WORKER_ID ?? 1);
 process.env.JWT_SECRET = 'e2e-secret-que-solo-existe-en-las-pruebas-0123456789';
 process.env.CORS_ORIGINS = 'http://localhost:3000';
 // Las pruebas verifican comportamiento, no logs; LOG_LEVEL=debug al diagnosticar una e2e.

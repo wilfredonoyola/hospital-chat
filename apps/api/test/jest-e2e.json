@@ -1,10 +1,21 @@
 {
   "moduleFileExtensions": ["js", "json", "ts"],
-  "rootDir": ".",
+  "rootDir": "..",
+  "roots": ["<rootDir>/test"],
   "testEnvironment": "node",
   "testRegex": ".e2e-spec.ts$",
   "transform": {
     "^.+\\.ts$": "ts-jest"
   },
-  "setupFiles": ["<rootDir>/setup-env.ts"]
+  "setupFiles": ["<rootDir>/test/setup-env.ts"],
+  "globalSetup": "<rootDir>/test/global-setup.ts",
+  "maxWorkers": 2,
+  "collectCoverageFrom": [
+    "src/**/*.ts",
+    "!src/**/*.spec.ts",
+    "!src/**/migrations/**",
+    "!src/main.ts",
+    "!src/seed.ts",
+    "!src/database/data-source.ts"
+  ]
 }
