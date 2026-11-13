@@ -1,4 +1,4 @@
-import type { MessageView } from '@hospital-chat/shared';
+import type { MessagePage, MessageView } from '@hospital-chat/shared';
 import { Body, Controller, Get, Param, ParseUUIDPipe, Post, Query } from '@nestjs/common';
 import { ApiBearerAuth, ApiForbiddenResponse, ApiTags } from '@nestjs/swagger';
 import { AuthUser } from '../auth/auth-user';
@@ -34,7 +34,7 @@ export class MessagesController {
     @Param('departmentId', ParseUUIDPipe) departmentId: string,
     @Query() query: ListMessagesQueryDto,
     @CurrentUser() user: AuthUser,
-  ): Promise<MessageView[]> {
-    return this.messages.latest(user.id, departmentId, query.limit);
+  ): Promise<MessagePage> {
+    return this.messages.page(user.id, departmentId, query.limit, query.before);
   }
 }

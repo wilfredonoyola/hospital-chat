@@ -60,7 +60,7 @@ describe('Mensajes (e2e)', () => {
     });
 
     const list = await ctx.http().get(channel(emergencias)).set(auth(carla)).expect(200);
-    expect(list.body).toEqual([
+    expect((list.body as { items: unknown[] }).items).toEqual([
       expect.objectContaining({
         id: (sent.body as { id: string }).id,
         body: 'Cama 4 pide analgesia',
@@ -126,7 +126,10 @@ describe('Mensajes (e2e)', () => {
       .set(auth(ana))
       .expect(200);
 
-    expect((response.body as Array<{ body: string }>).map((m) => m.body)).toEqual(['tres', 'dos']);
+    expect((response.body as { items: Array<{ body: string }> }).items.map((m) => m.body)).toEqual([
+      'tres',
+      'dos',
+    ]);
   });
 
   it.each([
@@ -172,5 +175,52 @@ describe('Mensajes (e2e)', () => {
         id,
       ]),
     ).rejects.toMatchObject({ driverError: { constraint: 'messages_body_length' } });
+  });
+
+  describe('paginación por cursor (fase 5b)', () => {
+    type Page = { items: Array<{ body: string }>; nextCursor: string | null };
+    const read = async (query: string) =>
+      (
+        await ctx
+          .http()
+          .get(`${channel(emergencias)}${query}`)
+          .set(auth(ana))
+          .expect(200)
+      ).body as Page;
+
+    it('recorre el canal hacia atrás sin repetir ni saltar, aunque lleguen mensajes nuevos', async () => {
+      for (let i = 1; i <= 7; i++) {
+        await ctx
+          .http()
+          .post(channel(emergencias))
+          .set(auth(ana))
+          .send({ body: `m${i}` });
+      }
+
+      const first = await read('?limit=3');
+      // Llega un mensaje nuevo mientras el usuario pagina: con OFFSET, "m4" se repetiría.
+      await ctx.http().post(channel(emergencias)).set(auth(carla)).send({ body: 'nuevo' });
+      const second = await read(`?limit=3&before=${first.nextCursor}`);
+      const third = await read(`?limit=3&before=${second.nextCursor}`);
+
+      expect(first.items.map((m) => m.body)).toEqual(['m7', 'm6', 'm5']);
+      expect(second.items.map((m) => m.body)).toEqual(['m4', 'm3', 'm2']);
+      expect(third.items.map((m) => m.body)).toEqual(['m1']);
+      expect(third.nextCursor).toBeNull();
+    });
+
+    it('sin más mensajes, nextCursor es null', async () => {
+      await ctx.http().post(channel(emergencias)).set(auth(ana)).send({ body: 'único' });
+
+      expect(await read('?limit=5')).toMatchObject({ nextCursor: null });
+    });
+
+    it('un cursor inválido responde 400', async () => {
+      await ctx
+        .http()
+        .get(`${channel(emergencias)}?before=esto-no-es-un-cursor`)
+        .set(auth(ana))
+        .expect(400);
+    });
   });
 });
