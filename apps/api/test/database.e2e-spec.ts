@@ -67,9 +67,10 @@ describe('Restricciones y migraciones de la base (e2e)', () => {
       ctx.db
         .query<Array<{ table_name: string }>>(
           `SELECT table_name FROM information_schema.tables
-            WHERE table_schema = 'public' AND table_name <> 'migrations' ORDER BY table_name`,
+            WHERE table_schema = 'public' AND table_name <> 'migrations'`,
         )
-        .then((rows) => rows.map((row) => row.table_name));
+        // Se ordena en JS: el orden de Postgres depende de la collation y '_' puede ignorarse.
+        .then((rows) => rows.map((row) => row.table_name).sort());
 
     for (let i = 0; i < ctx.db.migrations.length; i++) {
       // Igual que la CLI (migrationsTransactionMode: 'each').
@@ -82,6 +83,7 @@ describe('Restricciones y migraciones de la base (e2e)', () => {
       'audit_logs',
       'department_members',
       'departments',
+      'message_seen',
       'messages',
       'users',
     ]);
