@@ -36,7 +36,7 @@ Si ya tenías el volumen de Postgres de antes, crea la base de pruebas una vez:
 
 ### Usuarios de demostración
 
-Los crea el seed fuera de producción.
+Los crea el seed fuera de producción. Qué puede hacer cada uno y casos para probar: [docs/usuarios-demo.md](docs/usuarios-demo.md).
 
 | Quién          | Rol          | Credenciales                               | Áreas            |
 | -------------- | ------------ | ------------------------------------------ | ---------------- |
