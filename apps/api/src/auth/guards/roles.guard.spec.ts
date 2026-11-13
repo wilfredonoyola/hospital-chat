@@ -4,8 +4,9 @@ import { Role } from '../../users/role';
 import { AuthUser } from '../auth-user';
 import { RolesGuard } from './roles.guard';
 
-function contextFor(user: AuthUser | undefined): ExecutionContext {
+function contextFor(user: AuthUser | undefined, type = 'http'): ExecutionContext {
   return {
+    getType: () => type,
     getHandler: () => () => undefined,
     getClass: () => class {},
     switchToHttp: () => ({ getRequest: () => ({ user }) }),
@@ -40,6 +41,12 @@ describe('RolesGuard', () => {
     expect(() => guard.canActivate(contextFor({ id: 'u', role: Role.STAFF }))).toThrow(
       ForbiddenException,
     );
+  });
+
+  it('no aplica a eventos de WebSocket: el socket se autentica en su propio middleware', () => {
+    requireRoles([Role.ADMIN]);
+
+    expect(guard.canActivate(contextFor(undefined, 'ws'))).toBe(true);
   });
 
   it('responde 403 si por error llega sin usuario: nunca abre por defecto', () => {

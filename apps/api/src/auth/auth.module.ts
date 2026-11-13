@@ -11,6 +11,7 @@ import { AuthController } from './auth.controller';
 import { AuthService } from './auth.service';
 import { JwtAuthGuard } from './guards/jwt-auth.guard';
 import { RolesGuard } from './guards/roles.guard';
+import { SessionService } from './session.service';
 import { UserCredentialsRepository } from './user-credentials.repository';
 
 @Module({
@@ -41,10 +42,12 @@ import { UserCredentialsRepository } from './user-credentials.repository';
   controllers: [AuthController],
   providers: [
     AuthService,
+    SessionService,
     UserCredentialsRepository,
     // El orden importa: autenticación antes que autorización.
     { provide: APP_GUARD, useClass: JwtAuthGuard },
     { provide: APP_GUARD, useClass: RolesGuard },
   ],
+  exports: [SessionService],
 })
 export class AuthModule {}

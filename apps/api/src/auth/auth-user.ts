@@ -10,4 +10,6 @@ export interface JwtPayload {
   sub: string;
   /** Versión de sesión: si no coincide con la de la base, el token está revocado. */
   ver: number;
+  /** Vencimiento en segundos desde epoch; lo agrega jsonwebtoken al firmar. */
+  exp?: number;
 }

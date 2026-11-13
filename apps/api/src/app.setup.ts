@@ -2,6 +2,7 @@ import { INestApplication, ValidationPipe } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { NestExpressApplication } from '@nestjs/platform-express';
 import helmet from 'helmet';
+import { CorsIoAdapter } from './common/cors-io.adapter';
 import { DatabaseExceptionFilter } from './common/database-exception.filter';
 import { Env } from './config/env';
 
@@ -22,7 +23,9 @@ export function configureApp(app: INestApplication): void {
   }
 
   app.use(helmet());
-  app.enableCors({ origin: config.get('CORS_ORIGINS', { infer: true }) });
+  const origins = config.get('CORS_ORIGINS', { infer: true });
+  app.enableCors({ origin: origins });
+  app.useWebSocketAdapter(new CorsIoAdapter(app, origins));
   app.enableShutdownHooks();
 
   // whitelist + forbidNonWhitelisted: cualquier campo que no esté en el DTO

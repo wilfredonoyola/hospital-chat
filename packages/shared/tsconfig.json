@@ -1,0 +1,10 @@
+{
+  "compilerOptions": {
+    "strict": true,
+    "noEmit": true,
+    "skipLibCheck": false,
+    "lib": ["ES2023"],
+    "types": []
+  },
+  "files": ["index.d.ts"]
+}
