@@ -7,7 +7,8 @@ import { configureApp } from './app.setup';
 import { Env } from './config/env';
 
 async function bootstrap() {
-  const app = await NestFactory.create(AppModule);
+  // bufferLogs: los logs de arranque esperan a que pino esté listo, así también salen en JSON.
+  const app = await NestFactory.create(AppModule, { bufferLogs: true });
   configureApp(app);
 
   const config = app.get(ConfigService<Env, true>);
