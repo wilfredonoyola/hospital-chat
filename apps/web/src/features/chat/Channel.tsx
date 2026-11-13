@@ -1,19 +1,19 @@
 'use client';
 
 import type { Role } from '@hospital-chat/shared';
-import { useMessages, useSendMessage } from '@/lib/queries';
 import { Composer } from './Composer';
 import { MessageList } from './MessageList';
+import { useMessages, useSendMessage } from './queries';
 
-export function Channel({
-  departmentId,
-  name,
-  role,
-}: {
+interface ChannelProps {
   departmentId: string;
   name: string;
   role: Role;
-}) {
+  /** Si el socket no pudo unirse al área, los mensajes nuevos no llegarán solos. */
+  realtimeError: string | null;
+}
+
+export function Channel({ departmentId, name, role, realtimeError }: ChannelProps) {
   const messages = useMessages(departmentId);
   const send = useSendMessage(departmentId);
 
@@ -21,6 +21,12 @@ export function Channel({
     <section className="channel" aria-label={`Canal de ${name}`}>
       <header className="channel__header">
         <h2>{name}</h2>
+        {realtimeError && (
+          <p role="status" className="channel__warning">
+            Sin tiempo real en esta área ({realtimeError}). Recarga la página para ver mensajes
+            nuevos.
+          </p>
+        )}
       </header>
       <div className="channel__body">
         {messages.isPending && <p className="empty">Cargando mensajes…</p>}

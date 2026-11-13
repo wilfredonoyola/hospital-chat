@@ -342,3 +342,27 @@ button:disabled {
     margin-top: 0;
   }
 }
+
+.channel__warning {
+  margin: 0.35rem 0 0;
+  font-size: 0.85rem;
+  color: var(--urgent);
+}
+
+.channel__body {
+  position: relative;
+}
+
+.new-messages {
+  position: sticky;
+  bottom: 0.75rem;
+  display: block;
+  margin: 0 auto 0.75rem;
+  padding: 0.45rem 1rem;
+  border: 0;
+  border-radius: 999px;
+  background: var(--accent);
+  color: var(--accent-text);
+  font-weight: 600;
+  box-shadow: 0 2px 8px rgb(0 0 0 / 0.2);
+}

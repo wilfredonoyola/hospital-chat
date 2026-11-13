@@ -1,4 +1,5 @@
 import { create } from 'zustand';
+import { useSession } from '@/lib/session-store';
 
 interface ChatState {
   activeDepartmentId: string | null;
@@ -21,3 +22,11 @@ export const useChatStore = create<ChatState>()((set) => ({
     set((state) => ({ drafts: { ...state.drafts, [departmentId]: text } })),
   reset: () => set({ activeDepartmentId: null, drafts: {} }),
 }));
+
+// Al cerrar sesión se borran los borradores: en una PC compartida, quien
+// entre después en la misma pestaña no debe ver lo que escribía el anterior.
+useSession.subscribe((state, previous) => {
+  if (previous.token && !state.token) {
+    useChatStore.getState().reset();
+  }
+});

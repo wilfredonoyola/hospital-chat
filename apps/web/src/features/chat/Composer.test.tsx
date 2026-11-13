@@ -1,6 +1,6 @@
 import { render, screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
-import { useChatStore } from '@/lib/chat-store';
+import { useChatStore } from '@/features/chat/chat-store';
 import { Composer } from './Composer';
 
 describe('Composer', () => {

@@ -2,7 +2,7 @@
 
 import type { MessagePriority, Role, SendMessageRequest } from '@hospital-chat/shared';
 import { useState, type FormEvent, type KeyboardEvent } from 'react';
-import { useChatStore } from '@/lib/chat-store';
+import { useChatStore } from '@/features/chat/chat-store';
 
 interface ComposerProps {
   departmentId: string;

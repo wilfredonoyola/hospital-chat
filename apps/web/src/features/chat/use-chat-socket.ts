@@ -1,28 +1,35 @@
 'use client';
 
-import type { ClientToServerEvents, ServerToClientEvents } from '@hospital-chat/shared';
+import type { ClientToServerEvents, JoinResult, ServerToClientEvents } from '@hospital-chat/shared';
 import { useQueryClient } from '@tanstack/react-query';
 import { useEffect, useRef, useState } from 'react';
 import { io, type Socket } from 'socket.io-client';
-import { API_URL } from './api';
+import { API_URL } from '@/lib/api';
+import { useSession } from '@/lib/session-store';
 import { addMessage, type ChatMessage } from './messages-cache';
 import { queryKeys } from './queries';
-import { useSession } from './session-store';
 
 export type ConnectionStatus = 'connecting' | 'online' | 'offline';
 
 type ChatSocket = Socket<ServerToClientEvents, ClientToServerEvents>;
+
+export interface ChatSocketState {
+  status: ConnectionStatus;
+  /** Si unirse a la sala del área falló, el motivo; los mensajes no llegarían en tiempo real. */
+  joinError: string | null;
+}
 
 /**
  * Socket del chat: solo recibe. Los mensajes nuevos entran a la caché de
  * TanStack Query con setQueryData, deduplicados por id. Al reconectar se
  * vuelve a leer por HTTP lo que pudo llegar mientras no había conexión.
  */
-export function useChatSocket(departmentId: string | null): ConnectionStatus {
+export function useChatSocket(departmentId: string | null): ChatSocketState {
   const token = useSession((state) => state.token);
   const signOut = useSession((state) => state.signOut);
   const queryClient = useQueryClient();
   const [status, setStatus] = useState<ConnectionStatus>('connecting');
+  const [joinError, setJoinError] = useState<string | null>(null);
   const socketRef = useRef<ChatSocket | null>(null);
   const departmentRef = useRef(departmentId);
 
@@ -40,7 +47,7 @@ export function useChatSocket(departmentId: string | null): ConnectionStatus {
     socket.on('connect', () => {
       setStatus('online');
       if (departmentRef.current) {
-        void socket.emitWithAck('department:join', { departmentId: departmentRef.current });
+        void joinRoom(socket, departmentRef.current, setJoinError);
       }
       if (connectedBefore) {
         // Reconexión: lo que se perdió mientras tanto se recupera por HTTP.
@@ -80,9 +87,18 @@ export function useChatSocket(departmentId: string | null): ConnectionStatus {
       void socket.emitWithAck('department:leave', { departmentId: previous });
     }
     if (departmentId) {
-      void socket.emitWithAck('department:join', { departmentId });
+      void joinRoom(socket, departmentId, setJoinError);
     }
   }, [departmentId]);
 
-  return status;
+  return { status, joinError };
+}
+
+async function joinRoom(
+  socket: ChatSocket,
+  departmentId: string,
+  setJoinError: (message: string | null) => void,
+): Promise<void> {
+  const result: JoinResult = await socket.emitWithAck('department:join', { departmentId });
+  setJoinError(result.ok ? null : result.message);
 }

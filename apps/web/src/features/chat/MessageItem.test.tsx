@@ -1,5 +1,5 @@
 import { render, screen } from '@testing-library/react';
-import type { ChatMessage } from '@/lib/messages-cache';
+import type { ChatMessage } from '@/features/chat/messages-cache';
 import { MessageItem } from './MessageItem';
 
 const base: ChatMessage = {

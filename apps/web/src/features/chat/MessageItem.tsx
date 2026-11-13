@@ -1,4 +1,4 @@
-import type { ChatMessage } from '@/lib/messages-cache';
+import type { ChatMessage } from '@/features/chat/messages-cache';
 
 const time = new Intl.DateTimeFormat('es', { hour: '2-digit', minute: '2-digit' });
 

@@ -1,5 +1,5 @@
 import type { ApiError } from '@hospital-chat/shared';
-import { useSession } from './session-store';
+import { useSession } from '@/lib/session-store';
 
 export const API_URL = process.env.NEXT_PUBLIC_API_URL ?? 'http://localhost:3001';
 
