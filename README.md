@@ -28,9 +28,23 @@ cp apps/web/.env.example apps/web/.env.local
 npm run dev:web                               # http://localhost:3000
 ```
 
-- Documentación de la API (Swagger): http://localhost:3001/docs
-- Health check: `GET http://localhost:3001/health`
-- Base de datos: en el navegador con Adminer (`docker compose --profile tools up -d adminer` → http://localhost:8080) o con `docker compose exec db psql -U hospital_chat -d hospital_chat`. Credenciales, tablas y consultas de ejemplo: [docs/base-de-datos.md](docs/base-de-datos.md)
+### Accesos en local
+
+Todos son valores de desarrollo: solo existen en tu máquina y no sirven en producción.
+
+| Qué                | Dónde                                                           | Usuario / contraseña                                                                            |
+| ------------------ | --------------------------------------------------------------- | ----------------------------------------------------------------------------------------------- |
+| Web                | http://localhost:3000                                           | Usuarios de demostración (abajo)                                                                |
+| API                | http://localhost:3001                                           | Token JWT de `POST /auth/staff/login` o `/auth/admin/login`                                     |
+| Swagger            | http://localhost:3001/docs                                      | —                                                                                               |
+| Health check       | http://localhost:3001/health                                    | —                                                                                               |
+| PostgreSQL         | `localhost:5432`, base `hospital_chat`                          | `hospital_chat` / `hospital_chat`                                                               |
+| Base de pruebas    | `localhost:5432`, base `hospital_chat_test`                     | `hospital_chat` / `hospital_chat`                                                               |
+| Adminer (opcional) | http://localhost:8080, servidor `db`                            | `hospital_chat` / `hospital_chat`                                                               |
+| psql               | `docker compose exec db psql -U hospital_chat -d hospital_chat` | —                                                                                               |
+| Admin de la app    | `POST /auth/admin/login`                                        | `admin@hospital.local` / `cambia-esta-contrasena` (o el `ADMIN_PASSWORD` que pusiste en `.env`) |
+
+Adminer se levanta con `docker compose --profile tools up -d adminer`. Tablas y consultas de ejemplo: [docs/base-de-datos.md](docs/base-de-datos.md).
 
 Si ya tenías el volumen de Postgres de antes, crea la base de pruebas una vez:
 `docker compose exec db createdb -U hospital_chat hospital_chat_test`
@@ -39,13 +53,13 @@ Si ya tenías el volumen de Postgres de antes, crea la base de pruebas una vez:
 
 Los crea el seed fuera de producción. Qué puede hacer cada uno y casos para probar: [docs/usuarios-demo.md](docs/usuarios-demo.md).
 
-| Quién          | Rol          | Credenciales                               | Áreas            |
-| -------------- | ------------ | ------------------------------------------ | ---------------- |
-| Administrador  | `ADMIN`      | `ADMIN_EMAIL` / `ADMIN_PASSWORD` de `.env` | —                |
-| Carla Rivas    | `SUPERVISOR` | `SUP001` / `7391`                          | Emergencias, UCI |
-| Ana Martínez   | `STAFF`      | `ENF001` / `2580`                          | Emergencias      |
-| Luis Hernández | `STAFF`      | `ENF002` / `4826`                          | UCI, Pediatría   |
-| Sofía Campos   | `STAFF`      | `FAR001` / `6153`                          | Farmacia         |
+| Quién          | Rol          | Credenciales                      | Áreas            |
+| -------------- | ------------ | --------------------------------- | ---------------- |
+| Administrador  | `ADMIN`      | ver «Accesos en local» (solo API) | —                |
+| Carla Rivas    | `SUPERVISOR` | `SUP001` / `7391`                 | Emergencias, UCI |
+| Ana Martínez   | `STAFF`      | `ENF001` / `2580`                 | Emergencias      |
+| Luis Hernández | `STAFF`      | `ENF002` / `4826`                 | UCI, Pediatría   |
+| Sofía Campos   | `STAFF`      | `FAR001` / `6153`                 | Farmacia         |
 
 ```bash
 curl -X POST localhost:3001/auth/staff/login \
