@@ -1,24 +1,12 @@
-import { Role } from './role';
+import type { UserProfile } from '@hospital-chat/shared';
 import { User } from './user.entity';
 
-export interface DepartmentSummary {
-  id: string;
-  name: string;
-}
-
 /**
- * Lo que sale por la API. Nunca se devuelve la entidad: así un campo nuevo
- * (un hash, un dato interno) no se expone por accidente al agregarlo.
+ * Lo que sale por la API es el contrato de packages/shared: si este archivo
+ * deja de cumplirlo, la API no compila. Nunca se devuelve la entidad: así un
+ * campo nuevo (un hash, un dato interno) no se expone por accidente.
  */
-export interface UserResponse {
-  id: string;
-  fullName: string;
-  role: Role;
-  staffCode: string | null;
-  email: string | null;
-  isActive: boolean;
-  departments: DepartmentSummary[];
-}
+export type UserResponse = UserProfile;
 
 export function toUserResponse(user: User): UserResponse {
   return {

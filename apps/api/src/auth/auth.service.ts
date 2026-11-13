@@ -1,3 +1,4 @@
+import type { LoginResponse } from '@hospital-chat/shared';
 import { Injectable, Logger, UnauthorizedException } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { JwtService } from '@nestjs/jwt';
@@ -7,12 +8,8 @@ import { Env } from '../config/env';
 import { JwtPayload } from './auth-user';
 import { LoginCandidate, UserCredentialsRepository } from './user-credentials.repository';
 
-export interface LoginResult {
-  accessToken: string;
-  tokenType: 'Bearer';
-  expiresIn: number;
-  user: Pick<LoginCandidate, 'id' | 'fullName' | 'role'>;
-}
+/** Respuesta del login: el contrato de packages/shared. */
+export type LoginResult = LoginResponse;
 
 /**
  * Un solo mensaje para todo fallo de login: código inexistente, cuenta

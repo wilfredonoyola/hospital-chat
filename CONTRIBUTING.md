@@ -26,7 +26,15 @@
 | Componentes (web)       | `*.test.tsx` junto al componente | Comportamiento visible con Testing Library; API simulada con MSW              |
 | E2E (web)               | `apps/web/e2e`                   | Solo los flujos críticos, con Playwright                                      |
 
-No se prueban getters, DTOs sin lógica ni el propio framework. La hora y los servicios externos se inyectan para poder reemplazarlos en las pruebas.
+No se prueban getters, DTOs sin lógica ni el propio framework. La hora y los servicios externos se inyectan para poder reemplazarlos en las pruebas. La estrategia completa, la cobertura mínima y el contrato API ↔ clientes están en el [ADR 0007](docs/adr/0007-estrategia-de-pruebas.md).
+
+En local se corren solo las pruebas relacionadas con el cambio; la suite completa la corre el CI:
+
+```bash
+npm test -w @hospital-chat/api -- --findRelatedTests <archivos> --maxWorkers=1
+npm run test:e2e -w @hospital-chat/api -- --maxWorkers=1 test/<archivo>.e2e-spec.ts
+npx vitest run <archivo> # en apps/web
+```
 
 ## Commits
 
