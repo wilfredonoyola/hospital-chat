@@ -8,11 +8,11 @@ import dynamic from 'next/dynamic';
  * difiera del primer render del navegador (hydration mismatch).
  */
 export const ChatScreenClient = dynamic(
-  () => import('@/components/ChatScreen').then((module) => module.ChatScreen),
+  () => import('./chat/ProtectedChat').then((module) => module.ProtectedChat),
   { ssr: false },
 );
 
 export const LoginScreenClient = dynamic(
-  () => import('@/components/LoginScreen').then((module) => module.LoginScreen),
+  () => import('@/features/auth/LoginScreen').then((module) => module.LoginScreen),
   { ssr: false },
 );

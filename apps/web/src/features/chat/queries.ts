@@ -2,9 +2,9 @@
 
 import type { MessageView, SendMessageRequest, UserProfile } from '@hospital-chat/shared';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
-import { apiFetch } from './api';
+import { apiFetch } from '@/lib/api';
 import { addMessage, confirmMessage, removeMessage, type ChatMessage } from './messages-cache';
-import { useSession } from './session-store';
+import { useSession } from '@/lib/session-store';
 
 export const queryKeys = {
   profile: ['profile'] as const,
