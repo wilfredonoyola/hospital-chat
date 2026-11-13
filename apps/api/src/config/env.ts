@@ -9,6 +9,8 @@ export const envSchema = z.object({
   NODE_ENV: z.enum(['development', 'test', 'production']).default('development'),
   PORT: z.coerce.number().int().positive().default(3001),
   DATABASE_URL: z.url({ protocol: /^postgres(ql)?$/ }),
+  DB_POOL_MAX: z.coerce.number().int().positive().default(10),
+  DB_STATEMENT_TIMEOUT_MS: z.coerce.number().int().positive().default(5000),
   CORS_ORIGINS: z
     .string()
     .default('http://localhost:3000')

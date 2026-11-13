@@ -21,6 +21,11 @@ const PG_STATUS: Record<string, { status: HttpStatus; fallback: string }> = {
   '23503': { status: HttpStatus.BAD_REQUEST, fallback: 'Referencia a un registro inexistente' },
   '23514': { status: HttpStatus.BAD_REQUEST, fallback: 'Los datos no cumplen las reglas' },
   '22P02': { status: HttpStatus.BAD_REQUEST, fallback: 'Formato de dato inválido' },
+  // statement_timeout: la consulta se canceló. 503 para que el cliente sepa que puede reintentar.
+  '57014': {
+    status: HttpStatus.SERVICE_UNAVAILABLE,
+    fallback: 'El servicio está tardando más de lo normal. Inténtalo de nuevo.',
+  },
 };
 
 /**

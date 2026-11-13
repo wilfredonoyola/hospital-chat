@@ -42,7 +42,7 @@ describe('DatabaseExceptionFilter', () => {
 
   it('no expone el error de la base cuando no es una restricción, pero lo registra', () => {
     const logError = jest.spyOn(Logger.prototype, 'error').mockImplementation(() => undefined);
-    const exception = pgError({ code: '57014' });
+    const exception = pgError({ code: 'XX000' });
     exception.message = 'canceling statement due to timeout';
 
     const result = run(exception);
@@ -51,5 +51,12 @@ describe('DatabaseExceptionFilter', () => {
     expect(JSON.stringify(result.body)).not.toMatch(/statement/);
     expect(logError).toHaveBeenCalledWith('canceling statement due to timeout', exception.stack);
     logError.mockRestore();
+  });
+
+  it('una consulta cancelada por statement_timeout responde 503 (reintentable)', () => {
+    const result = run(pgError({ code: '57014' }));
+
+    expect(result.status).toBe(503);
+    expect(result.body.message).toMatch(/Inténtalo de nuevo/);
   });
 });

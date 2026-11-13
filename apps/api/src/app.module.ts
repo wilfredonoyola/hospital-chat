@@ -24,7 +24,10 @@ import { UsersModule } from './users/users.module';
     TypeOrmModule.forRootAsync({
       inject: [ConfigService],
       useFactory: (config: ConfigService<Env, true>) =>
-        buildTypeOrmOptions(config.get('DATABASE_URL', { infer: true })),
+        buildTypeOrmOptions(config.get('DATABASE_URL', { infer: true }), {
+          poolMax: config.get('DB_POOL_MAX', { infer: true }),
+          statementTimeoutMs: config.get('DB_STATEMENT_TIMEOUT_MS', { infer: true }),
+        }),
     }),
     CommonModule,
     AuditModule,
