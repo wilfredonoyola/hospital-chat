@@ -42,6 +42,21 @@ export interface MessageView {
   /** ISO 8601 */
   createdAt: string;
   author: { id: string; fullName: string; role: Role };
+  /**
+   * Si quien lee ya marcó "Lo vi". Al enviar (y en el socket) siempre es false:
+   * un mensaje nuevo nadie lo ha confirmado todavía.
+   */
+  seenByMe: boolean;
+  /** Cuántas personas marcaron "Lo vi". 0 en un mensaje recién enviado. */
+  seenCount: number;
+}
+
+/** Confirmación "Lo vi" de un mensaje de supervisor. */
+export interface MessageSeenView {
+  messageId: string;
+  userId: string;
+  /** ISO 8601 */
+  seenAt: string;
 }
 
 /** Una página del canal, del más reciente al más antiguo. */

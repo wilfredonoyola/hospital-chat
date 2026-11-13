@@ -37,6 +37,8 @@ function message(id: string, departmentId = 'emergencias'): MessageView {
     priority: 'NORMAL',
     createdAt: '2026-11-12T08:00:00.000Z',
     author: { id: 'carla', fullName: 'Carla Rivas', role: 'SUPERVISOR' },
+    seenByMe: false,
+    seenCount: 0,
   };
 }
 

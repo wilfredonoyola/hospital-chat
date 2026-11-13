@@ -1,5 +1,6 @@
 import type { ChatMessage } from '@/features/chat/messages-cache';
 import { Avatar } from './Avatar';
+import { SeenButton } from './SeenButton';
 
 const time = new Intl.DateTimeFormat('es', { hour: '2-digit', minute: '2-digit' });
 
@@ -13,6 +14,8 @@ interface MessageItemProps {
 
 export function MessageItem({ message, isMine = false }: MessageItemProps) {
   const urgent = message.priority === 'URGENT';
+  // Los mensajes de un supervisor piden confirmación de lectura a los demás (no a quien lo envió).
+  const canAcknowledge = message.author.role === 'SUPERVISOR' && !isMine;
   const classes = [
     'message',
     urgent && 'message--urgent',
@@ -44,6 +47,20 @@ export function MessageItem({ message, isMine = false }: MessageItemProps) {
         </div>
         {/* React escapa el texto: un mensaje con HTML se muestra, no se ejecuta. */}
         <p className="message__body">{message.body}</p>
+        {isMine && message.author.role === 'SUPERVISOR' && !message.pending && (
+          <p className="message__seen-count">
+            {message.seenCount === 0 ? 'Nadie lo ha visto aún' : `Visto por ${message.seenCount}`}
+          </p>
+        )}
+        {canAcknowledge && (
+          <div className="message__actions">
+            <SeenButton
+              departmentId={message.departmentId}
+              messageId={message.id}
+              seen={message.seenByMe}
+            />
+          </div>
+        )}
       </div>
     </li>
   );

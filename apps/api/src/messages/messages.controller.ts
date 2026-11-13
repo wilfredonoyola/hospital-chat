@@ -1,6 +1,6 @@
-import type { MessagePage, MessageView } from '@hospital-chat/shared';
+import type { MessagePage, MessageSeenView, MessageView } from '@hospital-chat/shared';
 import { Body, Controller, Get, Param, ParseUUIDPipe, Post, Query } from '@nestjs/common';
-import { ApiBearerAuth, ApiForbiddenResponse, ApiTags } from '@nestjs/swagger';
+import { ApiBearerAuth, ApiForbiddenResponse, ApiNotFoundResponse, ApiTags } from '@nestjs/swagger';
 import { AuthUser } from '../auth/auth-user';
 import { CurrentUser } from '../auth/decorators';
 import { ChatGateway } from './chat.gateway';
@@ -36,5 +36,19 @@ export class MessagesController {
     @CurrentUser() user: AuthUser,
   ): Promise<MessagePage> {
     return this.messages.page(user.id, departmentId, query.limit, query.before);
+  }
+
+  /**
+   * "Lo vi": el usuario del token confirma que leyó un mensaje de un supervisor.
+   * Sin body: quién lo vio sale del token y la hora la pone el servidor.
+   */
+  @Post(':messageId/seen')
+  @ApiNotFoundResponse({ description: 'El mensaje no existe en esta área' })
+  markSeen(
+    @Param('departmentId', ParseUUIDPipe) departmentId: string,
+    @Param('messageId', ParseUUIDPipe) messageId: string,
+    @CurrentUser() user: AuthUser,
+  ): Promise<MessageSeenView> {
+    return this.messages.markSeen(user, departmentId, messageId);
   }
 }

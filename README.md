@@ -59,6 +59,7 @@ Los crea el seed fuera de producción. Qué puede hacer cada uno y casos para pr
 | Carla Rivas    | `SUPERVISOR` | `SUP001` / `7391`                 | Emergencias, UCI |
 | Ana Martínez   | `STAFF`      | `ENF001` / `2580`                 | Emergencias      |
 | Luis Hernández | `STAFF`      | `ENF002` / `4826`                 | UCI, Pediatría   |
+| Pedro Gómez    | `STAFF`      | `ENF003` / `9147`                 | Emergencias, UCI |
 | Sofía Campos   | `STAFF`      | `FAR001` / `6153`                 | Farmacia         |
 
 ```bash

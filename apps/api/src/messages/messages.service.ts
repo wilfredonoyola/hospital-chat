@@ -1,5 +1,5 @@
-import type { MessagePage, MessageView } from '@hospital-chat/shared';
-import { ForbiddenException, Injectable } from '@nestjs/common';
+import type { MessagePage, MessageSeenView, MessageView } from '@hospital-chat/shared';
+import { ForbiddenException, Injectable, NotFoundException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { DataSource, Repository } from 'typeorm';
 import { AuthUser } from '../auth/auth-user';
@@ -7,6 +7,7 @@ import { Clock } from '../common/clock';
 import { Role } from '../users/role';
 import { decodeCursor, encodeCursor } from './message-cursor';
 import { validateNewMessage } from './message-rules';
+import { MessageSeen } from './message-seen.entity';
 import { Message, MessagePriority } from './message.entity';
 
 interface MessageRow {
@@ -20,11 +21,24 @@ interface MessageRow {
   author_role: Role;
   /** created_at como texto de Postgres: conserva los microsegundos para el cursor. */
   created_at_exact: string;
+  seen_by_me: boolean;
+  seen_count: number;
 }
 
-const SELECT_VIEW = `
+/**
+ * Consulta base de MessageView. `readerParam` es el parámetro ($n) con el id
+ * de quien lee: con él se calcula si ya marcó "Lo vi". Las dos subconsultas
+ * usan la llave primaria de message_seen (empieza por message_id), sin
+ * escanear la tabla.
+ */
+const selectView = (readerParam: string) => `
   SELECT m.id, m.department_id, m.body, m.priority, m.created_at, m.created_at::text AS created_at_exact,
-         u.id AS author_id, u.full_name AS author_name, u.role AS author_role
+         u.id AS author_id, u.full_name AS author_name, u.role AS author_role,
+         EXISTS (
+           SELECT 1 FROM message_seen s WHERE s.message_id = m.id AND s.user_id = ${readerParam}
+         ) AS seen_by_me,
+         -- ::int porque count() es bigint y el driver lo entrega como texto.
+         (SELECT count(*)::int FROM message_seen s WHERE s.message_id = m.id) AS seen_count
     FROM messages m
     JOIN users u ON u.id = m.author_id`;
 
@@ -32,6 +46,7 @@ const SELECT_VIEW = `
 export class MessagesService {
   constructor(
     @InjectRepository(Message) private readonly messages: Repository<Message>,
+    @InjectRepository(MessageSeen) private readonly seen: Repository<MessageSeen>,
     private readonly dataSource: DataSource,
     private readonly clock: Clock,
   ) {}
@@ -64,7 +79,10 @@ export class MessagesService {
       }),
     );
 
-    const [view] = await this.queryViews(`${SELECT_VIEW} WHERE m.id = $1`, [saved.id]);
+    const [view] = await this.queryViews(`${selectView('$2')} WHERE m.id = $1`, [
+      saved.id,
+      author.id,
+    ]);
     return view;
   }
 
@@ -87,19 +105,19 @@ export class MessagesService {
     // Se pide uno de más para saber si hay página anterior sin otra consulta.
     const rows = cursor
       ? await this.dataSource.query<MessageRow[]>(
-          `${SELECT_VIEW}
+          `${selectView('$5')}
             WHERE m.department_id = $1
               AND (m.created_at, m.id) < ($2::timestamptz, $3::uuid)
             ORDER BY m.created_at DESC, m.id DESC
             LIMIT $4`,
-          [departmentId, cursor.createdAt, cursor.id, limit + 1],
+          [departmentId, cursor.createdAt, cursor.id, limit + 1, readerId],
         )
       : await this.dataSource.query<MessageRow[]>(
-          `${SELECT_VIEW}
+          `${selectView('$3')}
             WHERE m.department_id = $1
             ORDER BY m.created_at DESC, m.id DESC
             LIMIT $2`,
-          [departmentId, limit + 1],
+          [departmentId, limit + 1, readerId],
         );
 
     const hasMore = rows.length > limit;
@@ -110,6 +128,44 @@ export class MessagesService {
       nextCursor:
         hasMore && last ? encodeCursor({ createdAt: last.created_at_exact, id: last.id }) : null,
     };
+  }
+
+  /**
+   * "Lo vi": solo en mensajes de supervisor del área, y no el propio autor.
+   * Idempotente: si ya lo había confirmado, devuelve la confirmación original.
+   */
+  async markSeen(
+    user: AuthUser,
+    departmentId: string,
+    messageId: string,
+  ): Promise<MessageSeenView> {
+    await this.ensureMember(user.id, departmentId);
+
+    // El mensaje debe ser de esta área: así no se confirman mensajes de otra.
+    const [message] = await this.dataSource.query<{ author_id: string; author_role: Role }[]>(
+      `SELECT m.author_id, u.role AS author_role
+         FROM messages m
+         JOIN users u ON u.id = m.author_id
+        WHERE m.id = $1 AND m.department_id = $2`,
+      [messageId, departmentId],
+    );
+    if (!message) {
+      throw new NotFoundException('El mensaje no existe en esta área');
+    }
+    if (message.author_role !== Role.SUPERVISOR || message.author_id === user.id) {
+      throw new ForbiddenException('Este mensaje no se puede confirmar');
+    }
+
+    // ON CONFLICT DO NOTHING: dos clics seguidos no chocan con la llave primaria.
+    await this.seen
+      .createQueryBuilder()
+      .insert()
+      .values({ messageId, userId: user.id, seenAt: this.clock.now() })
+      .orIgnore()
+      .execute();
+
+    const saved = await this.seen.findOneByOrFail({ messageId, userId: user.id });
+    return { messageId, userId: user.id, seenAt: saved.seenAt.toISOString() };
   }
 
   /**
@@ -143,5 +199,7 @@ function toView(row: MessageRow): MessageView {
     priority: row.priority,
     createdAt: row.created_at.toISOString(),
     author: { id: row.author_id, fullName: row.author_name, role: row.author_role },
+    seenByMe: row.seen_by_me,
+    seenCount: row.seen_count,
   };
 }

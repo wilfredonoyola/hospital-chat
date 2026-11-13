@@ -2,6 +2,7 @@
 
 import type {
   MessagePage,
+  MessageSeenView,
   MessageView,
   SendMessageRequest,
   UserProfile,
@@ -11,6 +12,7 @@ import { apiFetch } from '@/lib/api';
 import {
   addMessage,
   confirmMessage,
+  markSeenInCache,
   removeMessage,
   updateNewestPage,
   type ChannelCache,
@@ -55,6 +57,24 @@ export function useMessages(departmentId: string) {
   });
 }
 
+/** "Lo vi" en un mensaje de supervisor. La API no falla si se confirma dos veces. */
+export function useMarkSeen(departmentId: string) {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: (messageId: string) =>
+      apiFetch<MessageSeenView>(`/departments/${departmentId}/messages/${messageId}/seen`, {
+        method: 'POST',
+      }),
+    // Se guarda en la caché: el "Visto ✓" sigue ahí al cambiar de área y volver.
+    onSuccess: (_seen, messageId) => {
+      queryClient.setQueryData<ChannelCache>(queryKeys.messages(departmentId), (old) =>
+        markSeenInCache(old, messageId),
+      );
+    },
+  });
+}
+
 /**
  * Envío con actualización optimista: el mensaje aparece al instante como
  * "enviando" y se reemplaza por el confirmado. Si falla, se quita y el
@@ -82,6 +102,8 @@ export function useSendMessage(departmentId: string) {
         priority: request.priority ?? 'NORMAL',
         createdAt: new Date().toISOString(),
         author: { id: user?.id ?? '', fullName: user?.fullName ?? '', role: user?.role ?? 'STAFF' },
+        seenByMe: false,
+        seenCount: 0,
         pending: true,
       };
       queryClient.setQueryData<ChannelCache>(key, (old) =>

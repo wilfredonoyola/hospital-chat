@@ -592,6 +592,20 @@ button:disabled {
   overflow-wrap: anywhere;
 }
 
+.message__button-see {
+  border-radius: 8px;
+  background-color: var(--sidebar);
+  padding: 4px;
+  float: right;
+}
+
+.message__seen-count {
+  margin: 0.3rem 0 0;
+  font-size: 0.75rem;
+  text-align: right;
+  opacity: 0.8;
+}
+
 .badge--urgent {
   padding: 0.12rem 0.55rem;
   border-radius: 999px;
