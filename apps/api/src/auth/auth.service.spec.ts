@@ -1,4 +1,4 @@
-import { UnauthorizedException } from '@nestjs/common';
+import { Logger, UnauthorizedException } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { JwtService } from '@nestjs/jwt';
 import { Clock } from '../common/clock';
@@ -154,5 +154,69 @@ describe('AuthService', () => {
     await service.logout('user-1');
 
     expect(credentials.revokeSessions).toHaveBeenCalledWith('user-1');
+  });
+
+  describe('eventos de seguridad (logs)', () => {
+    let warn: jest.SpyInstance;
+    let info: jest.SpyInstance;
+
+    beforeEach(() => {
+      warn = jest.spyOn(Logger.prototype, 'warn').mockImplementation(() => undefined);
+      info = jest.spyOn(Logger.prototype, 'log').mockImplementation(() => undefined);
+    });
+    afterEach(() => jest.restoreAllMocks());
+
+    it.each([
+      ['unknown_identifier', null],
+      ['inactive', candidate({ isActive: false })],
+      ['locked', candidate({ lockedUntil: new Date(NOW.getTime() + 60_000) })],
+      ['wrong_secret', candidate()],
+    ])('registra el motivo interno %s sin cambiar la respuesta', async (reason, found) => {
+      credentials.findStaffByCode.mockResolvedValue(found);
+
+      await expect(service.loginStaff('enf001', '9999')).rejects.toThrow(INVALID_CREDENTIALS);
+
+      expect(warn).toHaveBeenCalledWith(
+        expect.objectContaining({
+          event: 'auth.login_failed',
+          method: 'staff',
+          identifier: 'ENF001',
+          reason,
+        }),
+      );
+    });
+
+    it('nunca registra el PIN', async () => {
+      credentials.findStaffByCode.mockResolvedValue(candidate());
+
+      await expect(service.loginStaff('ENF001', '9999')).rejects.toThrow();
+      await service.loginStaff('ENF001', '2580');
+
+      const logged = JSON.stringify([...warn.mock.calls, ...info.mock.calls]);
+      expect(logged).not.toMatch(/9999|2580/);
+    });
+
+    it('registra el bloqueo de cuenta para poder alertar', async () => {
+      credentials.findStaffByCode.mockResolvedValue(candidate());
+      credentials.registerFailedLogin.mockResolvedValue(true);
+
+      await expect(service.loginStaff('ENF001', '9999')).rejects.toThrow();
+
+      expect(warn).toHaveBeenCalledWith(
+        expect.objectContaining({ event: 'auth.account_locked', userId: 'user-1' }),
+      );
+    });
+
+    it('registra el login correcto y el logout', async () => {
+      credentials.findStaffByCode.mockResolvedValue(candidate());
+
+      await service.loginStaff('ENF001', '2580');
+      await service.logout('user-1');
+
+      expect(info).toHaveBeenCalledWith(
+        expect.objectContaining({ event: 'auth.login_succeeded', userId: 'user-1' }),
+      );
+      expect(info).toHaveBeenCalledWith({ event: 'auth.logout', userId: 'user-1' });
+    });
   });
 });

@@ -21,6 +21,14 @@ export interface LoginResult {
  */
 export const INVALID_CREDENTIALS = 'Credenciales inválidas';
 
+type LoginFailureReason = 'unknown_identifier' | 'inactive' | 'locked' | 'wrong_secret';
+
+interface LoginAttempt {
+  method: 'staff' | 'admin';
+  /** Código de personal o email. No es secreto; el PIN y la contraseña sí, y nunca se registran. */
+  identifier: string;
+}
+
 @Injectable()
 export class AuthService {
   private readonly logger = new Logger(AuthService.name);
@@ -34,28 +42,42 @@ export class AuthService {
   ) {}
 
   async loginStaff(staffCode: string, pin: string): Promise<LoginResult> {
-    const candidate = await this.credentials.findStaffByCode(staffCode.toUpperCase());
-    return this.login(candidate, pin);
+    const code = staffCode.toUpperCase();
+    const candidate = await this.credentials.findStaffByCode(code);
+    return this.login(candidate, pin, { method: 'staff', identifier: code });
   }
 
   async loginAdmin(email: string, password: string): Promise<LoginResult> {
-    const candidate = await this.credentials.findAdminByEmail(email.toLowerCase());
-    return this.login(candidate, password);
+    const normalized = email.toLowerCase();
+    const candidate = await this.credentials.findAdminByEmail(normalized);
+    return this.login(candidate, password, { method: 'admin', identifier: normalized });
   }
 
   async logout(userId: string): Promise<void> {
     await this.credentials.revokeSessions(userId);
+    this.logger.log({ event: 'auth.logout', userId });
   }
 
-  private async login(candidate: LoginCandidate | null, secret: string): Promise<LoginResult> {
+  private async login(
+    candidate: LoginCandidate | null,
+    secret: string,
+    attempt: LoginAttempt,
+  ): Promise<LoginResult> {
     // Usuario inexistente, inactivo o bloqueado: igual se calcula un hash para
     // que el tiempo de respuesta sea el mismo que con un PIN incorrecto.
     if (!candidate || !candidate.isActive || this.isLocked(candidate)) {
       await this.hasher.verifyDummy(secret);
+      const reason = !candidate
+        ? 'unknown_identifier'
+        : !candidate.isActive
+          ? 'inactive'
+          : 'locked';
+      this.logFailure(attempt, reason, candidate?.id);
       throw new UnauthorizedException(INVALID_CREDENTIALS);
     }
 
     if (!(await this.hasher.verify(candidate.secretHash, secret))) {
+      this.logFailure(attempt, 'wrong_secret', candidate.id);
       await this.registerFailure(candidate.id);
       throw new UnauthorizedException(INVALID_CREDENTIALS);
     }
@@ -64,7 +86,21 @@ export class AuthService {
       await this.credentials.resetFailedLogins(candidate.id);
     }
 
+    this.logger.log({
+      event: 'auth.login_succeeded',
+      method: attempt.method,
+      userId: candidate.id,
+    });
     return this.issueToken(candidate);
+  }
+
+  /**
+   * El motivo real queda en el log interno (para detectar fuerza bruta o una
+   * cuenta atacada); la respuesta al cliente es siempre el mismo 401 (A2).
+   * Nunca se registra el PIN ni la contraseña.
+   */
+  private logFailure(attempt: LoginAttempt, reason: LoginFailureReason, userId?: string): void {
+    this.logger.warn({ event: 'auth.login_failed', ...attempt, reason, userId });
   }
 
   private isLocked(candidate: LoginCandidate): boolean {
@@ -78,8 +114,12 @@ export class AuthService {
 
     const locked = await this.credentials.registerFailedLogin(userId, maxAttempts, lockUntil);
     if (locked) {
-      // Evento de seguridad: en la fase 5 va a logs estructurados y alertas.
-      this.logger.warn(`Cuenta ${userId} bloqueada hasta ${lockUntil.toISOString()}`);
+      // Evento para alertas: varias cuentas bloqueadas en pocos minutos es un ataque (M1).
+      this.logger.warn({
+        event: 'auth.account_locked',
+        userId,
+        lockedUntil: lockUntil.toISOString(),
+      });
     }
   }
 
