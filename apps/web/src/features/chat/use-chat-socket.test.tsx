@@ -3,7 +3,7 @@ import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { act, renderHook, waitFor } from '@testing-library/react';
 import type { ReactNode } from 'react';
 import { useSession } from '@/lib/session-store';
-import type { ChatMessage } from './messages-cache';
+import type { ChannelCache } from './messages-cache';
 import { queryKeys } from './queries';
 import { useChatSocket } from './use-chat-socket';
 
@@ -71,7 +71,10 @@ describe('useChatSocket', () => {
   });
 
   it('un mensaje nuevo entra a la caché del área, sin duplicarse', () => {
-    queryClient.setQueryData<ChatMessage[]>(queryKeys.messages('emergencias'), []);
+    queryClient.setQueryData<ChannelCache>(queryKeys.messages('emergencias'), {
+      pages: [{ items: [], nextCursor: 'cursor-anterior' }],
+      pageParams: [null],
+    });
     renderHook(() => useChatSocket('emergencias'), { wrapper });
 
     act(() => {
@@ -79,7 +82,10 @@ describe('useChatSocket', () => {
       socket.serverEmits('message:new', message('m1'));
     });
 
-    expect(queryClient.getQueryData(queryKeys.messages('emergencias'))).toEqual([message('m1')]);
+    expect(queryClient.getQueryData(queryKeys.messages('emergencias'))).toEqual({
+      pages: [{ items: [message('m1')], nextCursor: 'cursor-anterior' }],
+      pageParams: [null],
+    });
   });
 
   it('no crea una caché parcial para un canal que todavía no se cargó', () => {

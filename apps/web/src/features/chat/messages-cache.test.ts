@@ -1,5 +1,13 @@
 import type { MessageView } from '@hospital-chat/shared';
-import { addMessage, confirmMessage, removeMessage, type ChatMessage } from './messages-cache';
+import {
+  addMessage,
+  confirmMessage,
+  flattenPages,
+  removeMessage,
+  updateNewestPage,
+  type ChannelCache,
+  type ChatMessage,
+} from './messages-cache';
 
 function message(id: string, createdAt: string, extra: Partial<ChatMessage> = {}): ChatMessage {
   return {
@@ -52,5 +60,33 @@ describe('caché de mensajes', () => {
     const list = removeMessage([message('temp-1', '2026-11-12T08:00:00.000Z')], 'temp-1');
 
     expect(list).toEqual([]);
+  });
+
+  describe('caché paginada', () => {
+    const cache: ChannelCache = {
+      pages: [
+        { items: [message('m3', '2026-11-12T08:03:00.000Z')], nextCursor: 'c1' },
+        { items: [message('m1', '2026-11-12T08:01:00.000Z')], nextCursor: null },
+      ],
+      pageParams: [null, 'c1'],
+    };
+
+    it('un mensaje nuevo va a la página más reciente y no toca las anteriores', () => {
+      const updated = updateNewestPage(cache, (items) =>
+        addMessage(items, message('m4', '2026-11-12T08:04:00.000Z')),
+      );
+
+      expect(updated?.pages[0].items.map((m) => m.id)).toEqual(['m4', 'm3']);
+      expect(updated?.pages[1]).toBe(cache.pages[1]);
+      expect(updated?.pageParams).toBe(cache.pageParams);
+    });
+
+    it('no crea caché si el canal no se cargó', () => {
+      expect(updateNewestPage(undefined, (items) => items)).toBeUndefined();
+    });
+
+    it('aplana las páginas del más reciente al más antiguo', () => {
+      expect(flattenPages(cache).map((m) => m.id)).toEqual(['m3', 'm1']);
+    });
   });
 });

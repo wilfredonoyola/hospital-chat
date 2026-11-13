@@ -1,7 +1,16 @@
 import type { MessageView } from '@hospital-chat/shared';
+import type { InfiniteData } from '@tanstack/react-query';
 
 /** Mensaje en pantalla: puede ser optimista (aún sin confirmar por el servidor). */
 export type ChatMessage = MessageView & { pending?: boolean };
+
+/** Página del canal en la caché (misma forma que MessagePage, con mensajes optimistas). */
+export interface ChatPage {
+  items: ChatMessage[];
+  nextCursor: string | null;
+}
+
+export type ChannelCache = InfiniteData<ChatPage, string | null>;
 
 const newestFirst = (a: ChatMessage, b: ChatMessage) =>
   b.createdAt.localeCompare(a.createdAt) || b.id.localeCompare(a.id);
@@ -34,4 +43,24 @@ export function confirmMessage(
 
 export function removeMessage(list: ChatMessage[] = [], id: string): ChatMessage[] {
   return list.filter((message) => message.id !== id);
+}
+
+/**
+ * Los mensajes nuevos (enviados o recibidos por socket) siempre van a la
+ * página más reciente: pages[0]. Las páginas anteriores no cambian.
+ */
+export function updateNewestPage(
+  cache: ChannelCache | undefined,
+  update: (items: ChatMessage[]) => ChatMessage[],
+): ChannelCache | undefined {
+  if (!cache?.pages.length) {
+    return cache;
+  }
+  const [newest, ...older] = cache.pages;
+  return { ...cache, pages: [{ ...newest, items: update(newest.items) }, ...older] };
+}
+
+/** Todos los mensajes cargados, del más reciente al más antiguo. */
+export function flattenPages(cache: ChannelCache | undefined): ChatMessage[] {
+  return cache?.pages.flatMap((page) => page.items) ?? [];
 }
