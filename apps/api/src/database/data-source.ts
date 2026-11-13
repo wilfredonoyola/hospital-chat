@@ -10,4 +10,9 @@ if (existsSync('.env')) {
 
 const env = validateEnv(process.env);
 
-export default new DataSource(buildTypeOrmOptions(env.DATABASE_URL));
+// Sin statement_timeout: una migración (p. ej. crear un índice sobre una tabla
+// grande) puede tardar minutos y no debe cancelarse a la mitad. El límite de 5 s
+// es para las peticiones de la app, no para operaciones de mantenimiento.
+export default new DataSource(
+  buildTypeOrmOptions(env.DATABASE_URL, { poolMax: 2, statementTimeoutMs: 0 }),
+);

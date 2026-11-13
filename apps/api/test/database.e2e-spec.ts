@@ -1,4 +1,10 @@
-import { createTestApp, resetDatabase, TestContext } from './helpers';
+import {
+  createDepartment,
+  createStaff,
+  createTestApp,
+  resetDatabase,
+  TestContext,
+} from './helpers';
 
 /** Reglas que viven en la base: se cumplen aunque el código tenga un bug. */
 describe('Restricciones y migraciones de la base (e2e)', () => {
@@ -66,7 +72,8 @@ describe('Restricciones y migraciones de la base (e2e)', () => {
         .then((rows) => rows.map((row) => row.table_name));
 
     for (let i = 0; i < ctx.db.migrations.length; i++) {
-      await ctx.db.undoLastMigration();
+      // Igual que la CLI (migrationsTransactionMode: 'each').
+      await ctx.db.undoLastMigration({ transaction: 'each' });
     }
     expect(await userTables()).toEqual([]);
 
@@ -78,5 +85,33 @@ describe('Restricciones y migraciones de la base (e2e)', () => {
       'messages',
       'users',
     ]);
+  });
+
+  it('la lectura del canal usa el índice: sin recorrer ni ordenar la tabla', async () => {
+    // Con la tabla vacía el planificador elige cualquier cosa: hace falta volumen.
+    await resetDatabase(ctx.db);
+    const departmentId = await createDepartment(ctx.db, 'Emergencias');
+    const otherId = await createDepartment(ctx.db, 'UCI');
+    const authorId = await createStaff(ctx.db, { code: 'ENF001', pin: '2580' });
+    await ctx.db.query(
+      `INSERT INTO messages (department_id, author_id, body, created_at)
+       SELECT CASE WHEN g % 2 = 0 THEN $1::uuid ELSE $2::uuid END, $3, 'm' || g,
+              now() - g * interval '1 second'
+         FROM generate_series(1, 20000) g`,
+      [departmentId, otherId, authorId],
+    );
+    await ctx.db.query('ANALYZE messages');
+
+    const [{ 'QUERY PLAN': plan }] = await ctx.db.query<Array<{ 'QUERY PLAN': unknown }>>(
+      `EXPLAIN (FORMAT JSON)
+       SELECT id FROM messages
+        WHERE department_id = $1
+        ORDER BY created_at DESC, id DESC LIMIT 51`,
+      [departmentId],
+    );
+    const text = JSON.stringify(plan);
+
+    expect(text).toContain('messages_department_created_idx');
+    expect(text).not.toContain('"Node Type":"Sort"');
   });
 });

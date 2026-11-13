@@ -3,6 +3,7 @@
 import type { Role } from '@hospital-chat/shared';
 import { Composer } from './Composer';
 import { MessageList } from './MessageList';
+import { flattenPages } from './messages-cache';
 import { useMessages, useSendMessage } from './queries';
 
 interface ChannelProps {
@@ -35,7 +36,14 @@ export function Channel({ departmentId, name, role, realtimeError }: ChannelProp
             No se pudieron cargar los mensajes. {messages.error.message}
           </p>
         )}
-        {messages.data && <MessageList messages={messages.data} />}
+        {messages.data && (
+          <MessageList
+            messages={flattenPages(messages.data)}
+            hasOlder={messages.hasNextPage}
+            loadingOlder={messages.isFetchingNextPage}
+            onLoadOlder={() => void messages.fetchNextPage()}
+          />
+        )}
       </div>
       <Composer departmentId={departmentId} role={role} onSend={send.mutateAsync} />
     </section>

@@ -1,10 +1,11 @@
-import type { MessageView } from '@hospital-chat/shared';
+import type { MessagePage, MessageView } from '@hospital-chat/shared';
 import { ForbiddenException, Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { DataSource, Repository } from 'typeorm';
 import { AuthUser } from '../auth/auth-user';
 import { Clock } from '../common/clock';
 import { Role } from '../users/role';
+import { decodeCursor, encodeCursor } from './message-cursor';
 import { validateNewMessage } from './message-rules';
 import { Message, MessagePriority } from './message.entity';
 
@@ -17,10 +18,12 @@ interface MessageRow {
   author_id: string;
   author_name: string;
   author_role: Role;
+  /** created_at como texto de Postgres: conserva los microsegundos para el cursor. */
+  created_at_exact: string;
 }
 
 const SELECT_VIEW = `
-  SELECT m.id, m.department_id, m.body, m.priority, m.created_at,
+  SELECT m.id, m.department_id, m.body, m.priority, m.created_at, m.created_at::text AS created_at_exact,
          u.id AS author_id, u.full_name AS author_name, u.role AS author_role
     FROM messages m
     JOIN users u ON u.id = m.author_id`;
@@ -65,16 +68,48 @@ export class MessagesService {
     return view;
   }
 
-  /** Últimos mensajes del área, el más reciente primero, con el autor en la misma consulta (sin N+1). */
-  async latest(readerId: string, departmentId: string, limit: number): Promise<MessageView[]> {
+  /**
+   * Una página del canal, del más reciente al más antiguo, con el autor en la
+   * misma consulta (sin N+1). Sin `before`, la página más reciente; con
+   * `before`, la anterior a ese cursor. Usa el índice
+   * messages(department_id, created_at DESC, id DESC): lee solo las filas de
+   * la página, sin importar qué tan atrás esté.
+   */
+  async page(
+    readerId: string,
+    departmentId: string,
+    limit: number,
+    before?: string,
+  ): Promise<MessagePage> {
+    const cursor = before ? decodeCursor(before) : null;
     await this.ensureMember(readerId, departmentId);
-    return this.queryViews(
-      `${SELECT_VIEW}
-        WHERE m.department_id = $1
-        ORDER BY m.created_at DESC, m.id DESC
-        LIMIT $2`,
-      [departmentId, limit],
-    );
+
+    // Se pide uno de más para saber si hay página anterior sin otra consulta.
+    const rows = cursor
+      ? await this.dataSource.query<MessageRow[]>(
+          `${SELECT_VIEW}
+            WHERE m.department_id = $1
+              AND (m.created_at, m.id) < ($2::timestamptz, $3::uuid)
+            ORDER BY m.created_at DESC, m.id DESC
+            LIMIT $4`,
+          [departmentId, cursor.createdAt, cursor.id, limit + 1],
+        )
+      : await this.dataSource.query<MessageRow[]>(
+          `${SELECT_VIEW}
+            WHERE m.department_id = $1
+            ORDER BY m.created_at DESC, m.id DESC
+            LIMIT $2`,
+          [departmentId, limit + 1],
+        );
+
+    const hasMore = rows.length > limit;
+    const pageRows = rows.slice(0, limit);
+    const last = pageRows.at(-1);
+    return {
+      items: pageRows.map(toView),
+      nextCursor:
+        hasMore && last ? encodeCursor({ createdAt: last.created_at_exact, id: last.id }) : null,
+    };
   }
 
   /**
@@ -96,13 +131,17 @@ export class MessagesService {
 
   private async queryViews(sql: string, params: unknown[]): Promise<MessageView[]> {
     const rows = await this.dataSource.query<MessageRow[]>(sql, params);
-    return rows.map((row) => ({
-      id: row.id,
-      departmentId: row.department_id,
-      body: row.body,
-      priority: row.priority,
-      createdAt: row.created_at.toISOString(),
-      author: { id: row.author_id, fullName: row.author_name, role: row.author_role },
-    }));
+    return rows.map(toView);
   }
+}
+
+function toView(row: MessageRow): MessageView {
+  return {
+    id: row.id,
+    departmentId: row.department_id,
+    body: row.body,
+    priority: row.priority,
+    createdAt: row.created_at.toISOString(),
+    author: { id: row.author_id, fullName: row.author_name, role: row.author_role },
+  };
 }

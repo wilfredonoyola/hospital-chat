@@ -44,6 +44,13 @@ export interface MessageView {
   author: { id: string; fullName: string; role: Role };
 }
 
+/** Una página del canal, del más reciente al más antiguo. */
+export interface MessagePage {
+  items: MessageView[];
+  /** Para pedir la página anterior (`?before=`). null si no hay más. */
+  nextCursor: string | null;
+}
+
 export interface SendMessageRequest {
   body: string;
   priority?: MessagePriority;

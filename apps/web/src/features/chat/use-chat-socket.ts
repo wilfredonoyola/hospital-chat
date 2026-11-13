@@ -6,7 +6,7 @@ import { useEffect, useRef, useState } from 'react';
 import { io, type Socket } from 'socket.io-client';
 import { API_URL } from '@/lib/api';
 import { useSession } from '@/lib/session-store';
-import { addMessage, type ChatMessage } from './messages-cache';
+import { addMessage, updateNewestPage, type ChannelCache } from './messages-cache';
 import { queryKeys } from './queries';
 
 export type ConnectionStatus = 'connecting' | 'online' | 'offline';
@@ -64,9 +64,9 @@ export function useChatSocket(departmentId: string | null): ChatSocketState {
     });
     socket.on('session:invalid', () => signOut());
     socket.on('message:new', (message) => {
-      queryClient.setQueryData<ChatMessage[]>(queryKeys.messages(message.departmentId), (old) =>
-        // Si el canal aún no se cargó, no se crea una caché parcial: se leerá completo por HTTP.
-        old ? addMessage(old, message) : old,
+      // Si el canal aún no se cargó, updateNewestPage no crea una caché parcial: se leerá por HTTP.
+      queryClient.setQueryData<ChannelCache>(queryKeys.messages(message.departmentId), (old) =>
+        updateNewestPage(old, (items) => addMessage(items, message)),
       );
     });
 

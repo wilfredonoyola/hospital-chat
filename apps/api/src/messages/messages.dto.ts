@@ -23,4 +23,10 @@ export class ListMessagesQueryDto {
   @Min(1)
   @Max(100)
   limit: number = 50;
+
+  /** Cursor de la respuesta anterior (`nextCursor`) para pedir mensajes más antiguos. */
+  @IsOptional()
+  @IsString()
+  @MaxLength(200)
+  before?: string;
 }
