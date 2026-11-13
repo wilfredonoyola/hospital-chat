@@ -30,6 +30,7 @@ npm run dev:web                               # http://localhost:3000
 
 - Documentación de la API (Swagger): http://localhost:3001/docs
 - Health check: `GET http://localhost:3001/health`
+- Base de datos en el navegador (Adminer, opcional): `docker compose --profile tools up -d adminer` y abre http://localhost:8080 (servidor `db`, usuario, contraseña y base `hospital_chat`). Por terminal: `docker compose exec db psql -U hospital_chat -d hospital_chat`
 
 Si ya tenías el volumen de Postgres de antes, crea la base de pruebas una vez:
 `docker compose exec db createdb -U hospital_chat hospital_chat_test`
