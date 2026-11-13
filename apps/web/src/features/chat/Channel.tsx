@@ -21,7 +21,13 @@ export function Channel({ departmentId, name, role, realtimeError }: ChannelProp
   return (
     <section className="channel" aria-label={`Canal de ${name}`}>
       <header className="channel__header">
-        <h2>{name}</h2>
+        <h2>
+          <span className="channel__hash" aria-hidden="true">
+            #
+          </span>
+          {name}
+        </h2>
+        <p className="channel__subtitle">Canal del área · solo lo ve el personal asignado</p>
         {realtimeError && (
           <p role="status" className="channel__warning">
             Sin tiempo real en esta área ({realtimeError}). Recarga la página para ver mensajes
