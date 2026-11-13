@@ -24,6 +24,8 @@ export const envSchema = z.object({
   // rate limit trataría a todo el mundo como un solo cliente.
   TRUST_PROXY: z.coerce.number().int().min(0).default(0),
 
+  LOG_LEVEL: z.enum(['fatal', 'error', 'warn', 'info', 'debug', 'trace', 'silent']).default('info'),
+
   JWT_SECRET: z.string().min(32, 'debe tener al menos 32 caracteres'),
   // Sesiones cortas: el personal usa PCs compartidas (ver docs/amenazas.md, A4).
   JWT_TTL_SECONDS: z.coerce.number().int().positive().default(1800),

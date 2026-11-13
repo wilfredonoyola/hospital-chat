@@ -39,3 +39,33 @@ describe('GET /health (e2e, Postgres real)', () => {
     expect(blocked.headers['access-control-allow-origin']).toBeUndefined();
   });
 });
+
+describe('Correlation ID (e2e)', () => {
+  let ctx: TestContext;
+
+  beforeAll(async () => {
+    ctx = await createTestApp();
+  });
+
+  afterAll(async () => {
+    await ctx.app.close();
+  });
+
+  it('toda respuesta trae X-Request-Id, también los errores', async () => {
+    const ok = await ctx.http().get('/health');
+    const unauthorized = await ctx.http().get('/auth/me');
+
+    expect(ok.headers['x-request-id']).toMatch(/^[0-9a-f-]{36}$/);
+    expect(unauthorized.status).toBe(401);
+    expect(unauthorized.headers['x-request-id']).toMatch(/^[0-9a-f-]{36}$/);
+    expect(ok.headers['x-request-id']).not.toBe(unauthorized.headers['x-request-id']);
+  });
+
+  it('respeta el id que manda un proxy (Front Door) y descarta uno inválido', async () => {
+    const forwarded = await ctx.http().get('/health').set('X-Request-Id', 'front-door-abc12345');
+    const invalid = await ctx.http().get('/health').set('X-Request-Id', 'no válido {}');
+
+    expect(forwarded.headers['x-request-id']).toBe('front-door-abc12345');
+    expect(invalid.headers['x-request-id']).toMatch(/^[0-9a-f-]{36}$/);
+  });
+});

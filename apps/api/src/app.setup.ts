@@ -2,6 +2,7 @@ import { INestApplication, ValidationPipe } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { NestExpressApplication } from '@nestjs/platform-express';
 import helmet from 'helmet';
+import { Logger } from 'nestjs-pino';
 import { CorsIoAdapter } from './common/cors-io.adapter';
 import { DatabaseExceptionFilter } from './common/database-exception.filter';
 import { Env } from './config/env';
@@ -13,6 +14,8 @@ import { Env } from './config/env';
  */
 export function configureApp(app: INestApplication): void {
   const config = app.get(ConfigService<Env, true>);
+  // Todos los logs de Nest (incluidos los de arranque) salen por pino en JSON.
+  app.useLogger(app.get(Logger));
 
   // Detrás de App Service / Front Door, req.ip debe ser la IP del cliente
   // (X-Forwarded-For) y no la del balanceador: de eso dependen el rate limit
